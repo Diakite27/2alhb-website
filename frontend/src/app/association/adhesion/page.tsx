@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { UserPlus, CheckCircle, AlertCircle, Shield, Users, Briefcase, Heart } from "lucide-react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import FAQ from "@/components/FAQ";
 
 interface FormData {
   first_name: string;
@@ -239,6 +240,8 @@ export default function AdhesionPage() {
           </div>
         </div>
       </section>
+
+      <FAQ />
     </>
   );
 }

@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
+import TiltCard from "./TiltCard";
 
 const DEMO_EVENTS = [
   {
@@ -12,7 +13,6 @@ const DEMO_EVENTS = [
       "Retrouvailles et célébration de l'excellence. Une soirée de gala réunissant toutes les générations d'anciens élèves.",
     date: "2026-06-15T19:00:00",
     location: "Hôtel Ivoire, Abidjan",
-    image: null,
   },
   {
     id: 2,
@@ -21,7 +21,6 @@ const DEMO_EVENTS = [
       "Football, basketball et athlétisme. Un moment de convivialité et de compétition amicale entre promotions.",
     date: "2026-07-20T08:00:00",
     location: "Stade du Lycée HB, Korhogo",
-    image: null,
   },
   {
     id: 3,
@@ -30,7 +29,6 @@ const DEMO_EVENTS = [
       "Accompagnement des jeunes diplômés par les aînés. Ateliers CV, simulations d'entretien et networking.",
     date: "2026-08-10T09:00:00",
     location: "Salle de conférence, Plateau",
-    image: null,
   },
 ];
 
@@ -72,34 +70,35 @@ export default function Events() {
               initial={{ y: 40, opacity: 0 }}
               animate={isInView ? { y: 0, opacity: 1 } : {}}
               transition={{ duration: 0.6, delay: i * 0.15 }}
-              className="bg-white dark:bg-dark-bg rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group hover:-translate-y-1"
             >
-              {/* Image placeholder */}
-              <div className="h-48 bg-gradient-to-br from-green to-green-light flex items-center justify-center">
-                <Calendar className="text-white/30" size={64} />
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-green dark:text-green-light mb-3 group-hover:text-orange transition-colors">
-                  {event.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                  {event.description}
-                </p>
-
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                  <Calendar size={16} className="text-orange" />
-                  <span>{formatDate(event.date)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                  <MapPin size={16} className="text-orange" />
-                  <span>{event.location}</span>
+              <TiltCard className="bg-white dark:bg-dark-bg rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
+                {/* Image placeholder */}
+                <div className="h-48 bg-gradient-to-br from-green to-green-light flex items-center justify-center">
+                  <Calendar className="text-white/30" size={64} />
                 </div>
 
-                <button className="flex items-center gap-2 text-orange font-semibold hover:gap-3 transition-all">
-                  En savoir plus <ArrowRight size={16} />
-                </button>
-              </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-green dark:text-green-light mb-3 group-hover:text-orange transition-colors">
+                    {event.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                    {event.description}
+                  </p>
+
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                    <Calendar size={16} className="text-orange" />
+                    <span>{formatDate(event.date)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                    <MapPin size={16} className="text-orange" />
+                    <span>{event.location}</span>
+                  </div>
+
+                  <button className="flex items-center gap-2 text-orange font-semibold hover:gap-3 transition-all">
+                    En savoir plus <ArrowRight size={16} />
+                  </button>
+                </div>
+              </TiltCard>
             </motion.div>
           ))}
         </div>

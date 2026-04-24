@@ -1,5 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
+import PageTransition from "@/components/PageTransition";
 
 export default function AssociationLayout({
   children,
@@ -9,8 +11,11 @@ export default function AssociationLayout({
   return (
     <>
       <Navbar />
-      <main>{children}</main>
+      <main>
+        <PageTransition>{children}</PageTransition>
+      </main>
       <Footer />
+      <ScrollToTop />
     </>
   );
 }

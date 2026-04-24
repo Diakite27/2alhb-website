@@ -1,15 +1,31 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import Image from "next/image";
 import { SITE_FULL_NAME, SITE_SLOGAN } from "@/lib/constants";
 import CounterStats from "./CounterStats";
 
 export default function Hero() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  // Parallax: image moves slower than scroll
+  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
+  // Text fades and moves up as you scroll
+  const textOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const textY = useTransform(scrollYProgress, [0, 0.5], [0, -60]);
+
   return (
-    <section className="relative h-[75svh] sm:h-[85vh] flex flex-col overflow-hidden">
-      {/* Background image */}
-      <div className="absolute inset-0">
+    <section
+      ref={sectionRef}
+      className="relative h-[75svh] sm:h-[85vh] flex flex-col overflow-hidden"
+    >
+      {/* Background image with parallax */}
+      <motion.div className="absolute inset-0" style={{ y: imageY }}>
         <Image
           src="/nav.jpeg"
           alt="Lycée Houphouët-Boigny"
@@ -17,18 +33,22 @@ export default function Hero() {
           className="object-cover object-[center_30%] sm:object-center"
           sizes="100vw"
           priority
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRm knyJckliyjqTzSlT54teleVy//Z"
         />
-      </div>
+      </motion.div>
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-green/25 to-black/50" />
 
       {/* Decorative circles — hidden on mobile */}
       <div className="hidden sm:block absolute -top-40 -right-40 w-96 h-96 bg-orange/10 rounded-full blur-3xl" />
       <div className="hidden sm:block absolute -bottom-40 -left-40 w-96 h-96 bg-orange/5 rounded-full blur-3xl" />
 
-      {/* Main content — centered with room for stats */}
-      <div className="relative z-10 flex-1 flex items-center justify-center pt-20 sm:pt-24 pb-4">
+      {/* Main content with fade on scroll */}
+      <motion.div
+        className="relative z-10 flex-1 flex items-center justify-center pt-20 sm:pt-24 pb-4"
+        style={{ opacity: textOpacity, y: textY }}
+      >
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center">
-          {/* Title */}
           <motion.h1
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -57,7 +77,6 @@ export default function Hero() {
             {SITE_SLOGAN}
           </motion.p>
 
-          {/* CTA */}
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -78,7 +97,7 @@ export default function Hero() {
             </a>
           </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats — anchored to bottom */}
       <div className="relative z-10 bg-black/30 backdrop-blur-sm">

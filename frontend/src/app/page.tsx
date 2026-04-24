@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import PageLoader from "@/components/PageLoader";
 import WaveSeparator from "@/components/WaveSeparator";
+import StickyCTA from "@/components/StickyCTA";
 
 export default function Home() {
   return (
@@ -31,6 +32,7 @@ export default function Home() {
       </main>
       <Footer />
       <ScrollToTop />
+      <StickyCTA />
     </>
   );
 }

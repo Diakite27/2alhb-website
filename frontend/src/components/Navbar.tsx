@@ -120,12 +120,23 @@ function MobileDropdown({ item, onClose }: { item: NavItem; onClose: () => void 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const { theme, toggleTheme } = useTheme();
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      const currentY = window.scrollY;
+      setScrolled(currentY > 20);
+
+      // Hide on scroll down, show on scroll up
+      if (currentY > lastScrollY.current && currentY > 100) {
+        setHidden(true);
+      } else {
+        setHidden(false);
+      }
+      lastScrollY.current = currentY;
 
       // Track active section
       const sections = ["about", "testimonials", "events", "register", "contact"];
@@ -139,14 +150,14 @@ export default function Navbar() {
       }
       setActiveSection(current);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <motion.nav
       initial={{ y: -100 }}
-      animate={{ y: 0 }}
+      animate={{ y: hidden && !isOpen ? -100 : 0 }}
       transition={{ duration: 0.5 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
