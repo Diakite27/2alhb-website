@@ -32,7 +32,7 @@ function AnimSection({ children, className = "", delay = 0 }: { children: React.
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   return (
-    <motion.div ref={ref} initial={{ y: 40, opacity: 0 }} animate={inView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.7, delay }} className={className}>
+    <motion.div ref={ref} initial={{ y: 40, opacity: 0 }} animate={inView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.4, delay }} className={className}>
       {children}
     </motion.div>
   );
@@ -73,12 +73,8 @@ export default function BureauPage() {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {direction.map((member, i) => (
-                <motion.div
+                <div
                   key={i}
-                  initial={{ y: 30, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.06 }}
                   className="flex items-center gap-4 p-5 rounded-2xl bg-gray-50 dark:bg-dark-card hover:bg-orange/5 dark:hover:bg-orange/10 transition-all group cursor-default"
                 >
                   <div className="w-14 h-14 bg-gradient-to-br from-green to-green-light rounded-xl flex items-center justify-center shrink-0 group-hover:from-orange group-hover:to-orange-dark transition-all">
@@ -90,7 +86,7 @@ export default function BureauPage() {
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{member.role}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </AnimSection>
@@ -104,12 +100,8 @@ export default function BureauPage() {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {commissions.map((member, i) => (
-                <motion.div
+                <div
                   key={i}
-                  initial={{ y: 30, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.06 }}
                   className="flex items-center gap-4 p-5 rounded-2xl bg-gray-50 dark:bg-dark-card hover:bg-green/5 dark:hover:bg-green/10 transition-all group cursor-default"
                 >
                   <div className="w-14 h-14 bg-gradient-to-br from-orange/80 to-orange rounded-xl flex items-center justify-center shrink-0 group-hover:from-green group-hover:to-green-light transition-all">
@@ -121,7 +113,7 @@ export default function BureauPage() {
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{member.role}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </AnimSection>

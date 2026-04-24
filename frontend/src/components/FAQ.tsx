@@ -46,12 +46,7 @@ function FAQCard({ item, index }: { item: FAQItem; index: number }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <motion.div
-      initial={{ y: 20, opacity: 0 }}
-      whileInView={{ y: 0, opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: index * 0.05 }}
-    >
+    <div>
       <div
         className={`rounded-2xl overflow-hidden transition-all duration-300 ${
           open
@@ -101,7 +96,7 @@ function FAQCard({ item, index }: { item: FAQItem; index: number }) {
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

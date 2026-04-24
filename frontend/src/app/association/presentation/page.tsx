@@ -124,7 +124,7 @@ function AnimSection({
       ref={ref}
       initial={{ y: 40, opacity: 0 }}
       animate={inView ? { y: 0, opacity: 1 } : {}}
-      transition={{ duration: 0.7, delay }}
+      transition={{ duration: 0.4, delay }}
       className={className}
     >
       {children}

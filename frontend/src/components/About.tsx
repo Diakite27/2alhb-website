@@ -80,7 +80,7 @@ export default function About() {
               key={obj.title}
               initial={{ y: 40, opacity: 0 }}
               animate={isInView ? { y: 0, opacity: 1 } : {}}
-              transition={{ duration: 0.5, delay: 0.1 + i * 0.08 }}
+              transition={{ duration: 0.35, delay: 0.05 + i * 0.06 }}
               className="rounded-2xl p-7 group cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white dark:bg-dark-card border border-gray-100 dark:border-dark-border"
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 bg-orange/10 dark:bg-orange/20 group-hover:bg-orange/20 dark:group-hover:bg-orange/30 transition-colors">

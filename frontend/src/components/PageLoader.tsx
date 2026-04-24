@@ -8,7 +8,7 @@ export default function PageLoader() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1800);
+    const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -23,8 +23,8 @@ export default function PageLoader() {
         >
           {/* Pulsing logo */}
           <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ scale: [1, 1.08, 1] }}
+            transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
           >
             <Image
               src="/logo.png"
@@ -55,7 +55,7 @@ export default function PageLoader() {
             <motion.div
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
-              transition={{ duration: 1.5, ease: "easeInOut" }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
               className="h-full bg-orange rounded-full"
             />
           </motion.div>

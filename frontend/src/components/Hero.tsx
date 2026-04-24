@@ -14,7 +14,7 @@ export default function Hero() {
   });
 
   // Parallax: image moves slower than scroll
-  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
+  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
   // Text fades and moves up as you scroll
   const textOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const textY = useTransform(scrollYProgress, [0, 0.5], [0, -60]);
@@ -25,7 +25,7 @@ export default function Hero() {
       className="relative h-[75svh] sm:h-[85vh] flex flex-col overflow-hidden"
     >
       {/* Background image with parallax */}
-      <motion.div className="absolute inset-0" style={{ y: imageY }}>
+      <motion.div className="absolute inset-0" style={{ y: imageY, willChange: "transform" }}>
         <Image
           src="/nav.jpeg"
           alt="Lycée Houphouët-Boigny"
@@ -52,7 +52,7 @@ export default function Hero() {
           <motion.h1
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
             className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4"
           >
             <span className="text-orange">2A</span>
@@ -62,7 +62,7 @@ export default function Hero() {
           <motion.p
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
             className="text-sm sm:text-lg md:text-xl text-white mb-1 sm:mb-2 font-semibold drop-shadow-lg px-2"
           >
             {SITE_FULL_NAME}
@@ -71,7 +71,7 @@ export default function Hero() {
           <motion.p
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
             className="text-xs sm:text-base md:text-lg text-orange font-semibold italic mb-6 sm:mb-10 drop-shadow-md"
           >
             {SITE_SLOGAN}
@@ -80,7 +80,7 @@ export default function Hero() {
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.9 }}
+            transition={{ duration: 0.6, delay: 0.65 }}
             className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0"
           >
             <a
