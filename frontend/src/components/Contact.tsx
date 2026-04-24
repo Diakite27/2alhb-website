@@ -65,7 +65,7 @@ export default function Contact() {
               <h3 className="text-2xl font-bold text-green dark:text-green-light mb-4">
                 Restons en contact
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p className="text-body text-gray-600 dark:text-gray-400 leading-relaxed">
                 Vous avez une question, une suggestion ou souhaitez rejoindre
                 l&apos;amicale ? N&apos;hésitez pas à nous écrire.
               </p>

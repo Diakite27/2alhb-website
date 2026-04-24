@@ -81,7 +81,7 @@ export default function Events() {
                   <h3 className="text-xl font-bold text-green dark:text-green-light mb-3 group-hover:text-orange transition-colors">
                     {event.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                  <p className="text-body text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                     {event.description}
                   </p>
 

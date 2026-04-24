@@ -68,7 +68,7 @@ export default function About() {
             Notre Mission
           </h2>
           <div className="w-20 h-1 bg-orange mx-auto mb-6 rounded-full" />
-          <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg">
+          <p className="text-body text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg">
             L&apos;Amicale des Anciens du Lycée Houphouët-Boigny œuvre pour la
             solidarité, l&apos;excellence et le rayonnement de notre alma mater.
           </p>
@@ -89,7 +89,7 @@ export default function About() {
               <h3 className="font-bold text-lg mb-2 text-green dark:text-green-light">
                 {obj.title}
               </h3>
-              <p className="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+              <p className="text-body text-sm leading-relaxed text-gray-500 dark:text-gray-400">
                 {obj.description}
               </p>
             </motion.div>

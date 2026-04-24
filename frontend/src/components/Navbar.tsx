@@ -79,7 +79,7 @@ function MobileDropdown({ item, onClose }: { item: NavItem; onClose: () => void 
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full text-foreground font-medium hover:text-orange transition-colors"
+        className="flex items-center justify-between w-full text-foreground dark:text-gray-200 font-medium hover:text-orange transition-colors"
       >
         {item.label}
         <ChevronDown
@@ -105,8 +105,8 @@ function MobileDropdown({ item, onClose }: { item: NavItem; onClose: () => void 
                   onClick={onClose}
                   className="block py-2"
                 >
-                  <span className="text-sm font-semibold text-green">{child.label}</span>
-                  <p className="text-xs text-gray-500">{child.description}</p>
+                  <span className="text-sm font-semibold text-green dark:text-green-light">{child.label}</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{child.description}</p>
                 </Link>
               ))}
             </div>
@@ -272,6 +272,15 @@ export default function Navbar() {
                   </Link>
                 )
               )}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-dark-border text-sm font-medium text-foreground dark:text-gray-200"
+                >
+                  {theme === "dark" ? <Sun size={16} className="text-orange" /> : <Moon size={16} />}
+                  {theme === "dark" ? "Mode clair" : "Mode sombre"}
+                </button>
+              </div>
               <Link
                 href="#register"
                 onClick={() => setIsOpen(false)}

@@ -155,7 +155,7 @@ export default function ReglementPage() {
             <div className="relative bg-white dark:bg-dark-card rounded-2xl p-8 shadow-sm mb-8 overflow-hidden">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-orange rounded-l-2xl" />
               <h3 className="font-bold text-green dark:text-green-light text-lg mb-3">Préambule</h3>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p className="text-body text-gray-600 dark:text-gray-400 leading-relaxed">
                 Le présent règlement intérieur complète et précise les statuts de la
                 2ALHB. Il s&apos;applique à tous les membres de l&apos;association et
                 détermine les conditions d&apos;application des statuts adoptés par

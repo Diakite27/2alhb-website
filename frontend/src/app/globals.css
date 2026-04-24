@@ -28,6 +28,10 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.text-body {
+  text-align: justify;
+}
+
 .dark body {
   background: var(--color-dark-bg);
   color: #e4e8ec;

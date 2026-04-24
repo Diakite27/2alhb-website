@@ -56,7 +56,7 @@ export default function BureauPage() {
       <section className="py-20 bg-white dark:bg-dark-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimSection className="max-w-3xl mb-16">
-            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
+            <p className="text-body text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
               Élu par l&apos;Assemblée Générale, le bureau exécutif assure la
               gestion de l&apos;amicale et coordonne l&apos;ensemble des activités.
               Chaque membre apporte son expertise et son énergie au service du

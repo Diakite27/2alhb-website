@@ -157,12 +157,12 @@ export default function PresentationPage() {
                 Plus qu&apos;une association,<br />
                 <span className="text-orange">une famille.</span>
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-lg mb-4">
+              <p className="text-body text-gray-600 dark:text-gray-400 leading-relaxed text-lg mb-4">
                 La 2ALHB rassemble les anciens élèves du Lycée Houphouët-Boigny
                 autour d&apos;une vision commune : perpétuer les valeurs qui ont forgé
                 des générations de leaders ivoiriens.
               </p>
-              <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+              <p className="text-body text-gray-500 dark:text-gray-400 leading-relaxed">
                 Apolitique, laïque et indépendante, notre amicale est un espace
                 de retrouvailles, d&apos;entraide et d&apos;ambition partagée. Que vous
                 soyez de la promotion 1980 ou 2024, vous êtes chez vous.

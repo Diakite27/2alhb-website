@@ -87,7 +87,7 @@ export default function Testimonials() {
             >
               <Quote className="text-orange/15" size={50} />
 
-              <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 leading-relaxed my-6 italic">
+              <p className="text-body text-lg sm:text-xl text-gray-700 dark:text-gray-300 leading-relaxed my-6 italic">
                 &ldquo;{t.content}&rdquo;
               </p>
 

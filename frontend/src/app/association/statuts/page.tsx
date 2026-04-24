@@ -22,7 +22,7 @@ const chapters: Chapter[] = [
       "Article 1 : Il est créé une Association à but non lucratif dénommée « Amicale des Anciens du Lycée Houphouët-Boigny », en abrégé « 2ALHB ».",
       "Article 2 : L'Association est expressément déclarée apolitique, laïque et non confessionnelle.",
       "Article 3 : L'Association a pour objet de maintenir et renforcer les liens entre les anciens élèves.",
-      "Article 4 : Le siège social est fixé à Abidjan, Côte d'Ivoire.",
+      "Article 4 : Le siège social est fixé à Korhogo, Côte d'Ivoire.",
       "Article 5 : La durée de l'Association est illimitée.",
     ],
   },
@@ -174,7 +174,7 @@ export default function StatutsPage() {
             <div className="relative bg-white dark:bg-dark-card rounded-2xl p-8 shadow-sm mb-8 overflow-hidden">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-green rounded-l-2xl" />
               <h3 className="font-bold text-green dark:text-green-light text-lg mb-3">Préambule</h3>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p className="text-body text-gray-600 dark:text-gray-400 leading-relaxed">
                 Il est créé, par le présent acte, une Association à but non lucratif
                 dénommée « Amicale des Anciens du Lycée Houphouët-Boigny », en abrégé
                 « 2ALHB » conformément à l&apos;ordonnance n°2024-368 relative à

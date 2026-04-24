@@ -119,7 +119,7 @@ export default function AdhesionPage() {
               <h2 className="text-2xl font-bold text-green dark:text-green-light mb-4">
                 Demande d&apos;adhésion
               </h2>
-              <p className="text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
+              <p className="text-body text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
                 Remplissez ce formulaire pour soumettre votre candidature.
                 Le bureau examinera votre demande et vous recevrez une
                 confirmation par email.
