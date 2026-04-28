@@ -30,6 +30,7 @@ export const NAV_LINKS: NavItem[] = [
     ],
   },
   { label: "Événements", href: "/evenements" },
+  { label: "Emplois", href: "/emplois" },
   { label: "Contact", href: "/#contact" },
 ];
 

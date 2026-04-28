@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     "Lycée Houphouët-Boigny",
     "anciens élèves",
     "alumni",
-    "Abidjan",
+    "Korhogo",
     "Côte d'Ivoire",
   ],
 };

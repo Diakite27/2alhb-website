@@ -14,9 +14,13 @@ interface FormData {
   phone: string;
   promotion: string;
   country: string;
+  city: string;
   profession: string;
   bio: string;
+  membership_type: "simple" | "adherent";
+  cotisation_mode: "mensuelle" | "annuelle";
   accept_rules: boolean;
+  accept_data: boolean;
 }
 
 const initialForm: FormData = {
@@ -26,9 +30,13 @@ const initialForm: FormData = {
   phone: "",
   promotion: "",
   country: "Côte d'Ivoire",
+  city: "",
   profession: "",
   bio: "",
+  membership_type: "simple",
+  cotisation_mode: "mensuelle",
   accept_rules: false,
+  accept_data: false,
 };
 
 const benefits = [
@@ -52,6 +60,21 @@ export default function AdhesionPage() {
   const [form, setForm] = useState<FormData>(initialForm);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setErrorMsg("La photo ne doit pas dépasser 2 Mo.");
+        setStatus("error");
+        return;
+      }
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -63,16 +86,42 @@ export default function AdhesionPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.accept_rules) {
-      setErrorMsg("Vous devez accepter les statuts et le règlement intérieur.");
+    setErrorMsg("");
+
+    // Field-level validation
+    const errors: string[] = [];
+
+    if (!form.first_name.trim()) errors.push("Le prénom est requis");
+    if (!form.last_name.trim()) errors.push("Le nom est requis");
+    if (!form.email.trim()) errors.push("L'email est requis");
+    if (!form.phone.trim()) errors.push("Le téléphone est requis");
+    if (!form.promotion.trim()) errors.push("La promotion est requise");
+    if (!form.country.trim()) errors.push("Le pays de résidence est requis");
+    if (!form.city.trim()) errors.push("La ville est requise");
+    if (!form.profession.trim()) errors.push("La profession est requise");
+
+    if (form.membership_type === "adherent" && !form.cotisation_mode) {
+      errors.push("Choisissez un mode de cotisation (mensuelle ou annuelle)");
+    }
+
+    if (!form.accept_rules) errors.push("Vous devez accepter les statuts et le règlement intérieur");
+    if (!form.accept_data) errors.push("Vous devez consentir à la collecte de vos données");
+
+    if (errors.length > 0) {
+      setErrorMsg(errors.join(" • "));
       setStatus("error");
+      // Scroll to top of form
+      document.getElementById("adhesion-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
+
     setStatus("loading");
-    setErrorMsg("");
+    // Simulated — will connect to DRF later
     await new Promise((r) => setTimeout(r, 1500));
     setStatus("success");
     setForm(initialForm);
+    setPhotoFile(null);
+    setPhotoPreview(null);
   };
 
   const inputClass =
@@ -158,13 +207,144 @@ export default function AdhesionPage() {
                   </p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="bg-white dark:bg-dark-bg rounded-3xl p-8 sm:p-10 shadow-sm space-y-5">
+                <form id="adhesion-form" onSubmit={handleSubmit} className="bg-white dark:bg-dark-bg rounded-3xl p-8 sm:p-10 shadow-sm space-y-5">
                   {status === "error" && (
-                    <div className="flex items-center gap-2 bg-red-50 text-red-600 p-4 rounded-xl text-sm">
-                      <AlertCircle size={18} />
-                      {errorMsg}
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-4 rounded-xl text-sm">
+                      <div className="flex items-center gap-2 font-semibold mb-1">
+                        <AlertCircle size={16} />
+                        Veuillez corriger les erreurs suivantes :
+                      </div>
+                      <p>{errorMsg}</p>
                     </div>
                   )}
+
+                  {/* Membership type selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Type de membre *</label>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {/* Membre Simple */}
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, membership_type: "simple" }))}
+                        className={`text-left p-4 rounded-xl border-2 transition-all ${
+                          form.membership_type === "simple"
+                            ? "border-orange bg-orange/5 dark:bg-orange/10"
+                            : "border-gray-200 dark:border-dark-border hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-green dark:text-green-light">Membre Simple</span>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            form.membership_type === "simple" ? "border-orange" : "border-gray-300"
+                          }`}>
+                            {form.membership_type === "simple" && <div className="w-2.5 h-2.5 rounded-full bg-orange" />}
+                          </div>
+                        </div>
+                        <p className="text-orange font-bold text-lg">5 000 FCFA</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">Droit d&apos;adhésion unique</p>
+                      </button>
+
+                      {/* Membre Adhérent */}
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, membership_type: "adherent" }))}
+                        className={`text-left p-4 rounded-xl border-2 transition-all ${
+                          form.membership_type === "adherent"
+                            ? "border-orange bg-orange/5 dark:bg-orange/10"
+                            : "border-gray-200 dark:border-dark-border hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-green dark:text-green-light">Membre Adhérent</span>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            form.membership_type === "adherent" ? "border-orange" : "border-gray-300"
+                          }`}>
+                            {form.membership_type === "adherent" && <div className="w-2.5 h-2.5 rounded-full bg-orange" />}
+                          </div>
+                        </div>
+                        <p className="text-orange font-bold text-lg">5 000 FCFA <span className="text-xs font-normal text-gray-400">+ cotisation</span></p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">Adhésion + cotisation mensuelle ou annuelle</p>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Info card based on selection */}
+                  {form.membership_type === "simple" ? (
+                    <div className="bg-green/5 dark:bg-green/10 border border-green/20 rounded-xl p-4">
+                      <h4 className="font-semibold text-green dark:text-green-light text-sm mb-2">Membre Simple</h4>
+                      <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                        <li className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
+                          Droit d&apos;adhésion : <strong>5 000 FCFA</strong> (paiement unique)
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
+                          Accès au réseau et à l&apos;annuaire des anciens
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
+                          Invitations aux événements de l&apos;amicale
+                        </li>
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="bg-orange/5 dark:bg-orange/10 border border-orange/20 rounded-xl p-4">
+                        <h4 className="font-semibold text-orange text-sm mb-2">Membre Adhérent — Avantages complets</h4>
+                        <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                          <li className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
+                            Droit d&apos;adhésion : <strong>5 000 FCFA</strong>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
+                            Tous les avantages du membre simple
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
+                            Droit de vote en Assemblée Générale
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
+                            Accès aux programmes de mentorat et d&apos;insertion
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Cotisation mode */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mode de cotisation *</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setForm((prev) => ({ ...prev, cotisation_mode: "mensuelle" }))}
+                            className={`p-3 rounded-xl border-2 text-center transition-all ${
+                              form.cotisation_mode === "mensuelle"
+                                ? "border-orange bg-orange/5 dark:bg-orange/10"
+                                : "border-gray-200 dark:border-dark-border hover:border-gray-300"
+                            }`}
+                          >
+                            <p className="font-bold text-green dark:text-green-light">5 000 FCFA</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">/ mois</p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setForm((prev) => ({ ...prev, cotisation_mode: "annuelle" }))}
+                            className={`p-3 rounded-xl border-2 text-center transition-all relative ${
+                              form.cotisation_mode === "annuelle"
+                                ? "border-orange bg-orange/5 dark:bg-orange/10"
+                                : "border-gray-200 dark:border-dark-border hover:border-gray-300"
+                            }`}
+                          >
+                            <p className="font-bold text-green dark:text-green-light">60 000 FCFA</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">/ an</p>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <hr className="border-gray-100 dark:border-dark-border" />
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
@@ -199,14 +379,43 @@ export default function AdhesionPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Profession</label>
-                    <input name="profession" value={form.profession} onChange={handleChange} className={inputClass} />
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Ville *</label>
+                      <input name="city" required value={form.city} onChange={handleChange} className={inputClass} placeholder="Ex: Korhogo" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Profession *</label>
+                      <input name="profession" required value={form.profession} onChange={handleChange} className={inputClass} placeholder="Ex: Ingénieur informatique" />
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Quelques mots sur vous (optionnel)</label>
                     <textarea name="bio" rows={3} value={form.bio} onChange={handleChange} className={`${inputClass} resize-none`} />
+                  </div>
+
+                  {/* Photo upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Photo de profil (optionnel)</label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-dark-border flex items-center justify-center overflow-hidden shrink-0">
+                        {photoPreview ? (
+                          <img src={photoPreview} alt="Aperçu" className="w-full h-full object-cover" />
+                        ) : (
+                          <UserPlus className="text-gray-400" size={24} />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoChange}
+                          className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-orange/10 file:text-orange hover:file:bg-orange/20 file:cursor-pointer"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">JPG, PNG. 2 Mo max.</p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex items-start gap-3 pt-2">
@@ -223,6 +432,22 @@ export default function AdhesionPage() {
                       et le{" "}
                       <Link href="/association/reglement" className="text-orange font-medium hover:underline">règlement intérieur</Link>{" "}
                       de la 2ALHB. *
+                    </label>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      name="accept_data"
+                      checked={form.accept_data}
+                      onChange={handleChange}
+                      className="mt-1 w-4 h-4 text-orange border-gray-300 rounded focus:ring-orange"
+                    />
+                    <label className="text-sm text-gray-600 dark:text-gray-400">
+                      Je consens à ce que mes données personnelles soient collectées
+                      et utilisées par la 2ALHB dans le cadre exclusif de mon adhésion
+                      et de la gestion de l&apos;association. Ces données ne seront ni
+                      cédées ni partagées à des tiers en dehors de ce cadre. *
                     </label>
                   </div>
 

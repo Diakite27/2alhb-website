@@ -1,19 +1,30 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
-    Member, Testimonial, Event, NewsArticle,
+    Promotion, Member, Testimonial, Event, NewsArticle,
     Partner, GalleryImage, SiteStats, ContactMessage,
 )
 
 
+@admin.register(Promotion)
+class PromotionAdmin(admin.ModelAdmin):
+    list_display = ["year", "name", "members_count"]
+    search_fields = ["year", "name"]
+    ordering = ["-year"]
+
+    def members_count(self, obj):
+        return obj.members.filter(is_approved=True).count()
+    members_count.short_description = "Membres"
+
+
 @admin.register(Member)
 class MemberAdmin(UserAdmin):
-    list_display = ["username", "get_full_name", "promotion", "profession", "country", "is_approved"]
-    list_filter = ["is_approved", "country", "promotion"]
-    search_fields = ["first_name", "last_name", "email", "promotion"]
+    list_display = ["username", "get_full_name", "promotion", "membership_type", "profession", "country", "is_approved"]
+    list_filter = ["is_approved", "country", "promotion__year", "membership_type"]
+    search_fields = ["first_name", "last_name", "email", "promotion__year"]
     fieldsets = UserAdmin.fieldsets + (
         ("Infos Alumni", {
-            "fields": ("phone", "promotion", "profession", "company", "city", "country", "bio", "photo", "linkedin", "is_approved"),
+            "fields": ("phone", "promotion", "membership_type", "cotisation_mode", "profession", "company", "city", "country", "bio", "photo", "linkedin", "is_approved"),
         }),
     )
 

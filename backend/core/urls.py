@@ -4,6 +4,11 @@ from . import views
 app_name = "core"
 
 urlpatterns = [
+    # Promotions
+    path("promotions/", views.PromotionListView.as_view(), name="promotion-list"),
+    path("promotions/<int:year>/", views.PromotionDetailView.as_view(), name="promotion-detail"),
+    path("promotions/stats/", views.members_per_promotion, name="promotion-stats"),
+
     # Members
     path("members/", views.MemberListView.as_view(), name="member-list"),
     path("members/register/", views.MemberRegistrationView.as_view(), name="member-register"),

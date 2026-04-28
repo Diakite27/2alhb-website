@@ -2,12 +2,54 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+class Promotion(models.Model):
+    """Promotion / Année de sortie du lycée."""
+
+    year = models.PositiveIntegerField("Année", unique=True)
+    name = models.CharField("Nom de baptême", max_length=200, blank=True, help_text="Ex: Les Invincibles")
+    photo = models.ImageField("Photo de groupe", upload_to="promotions/", blank=True)
+    description = models.TextField("Description", blank=True)
+
+    class Meta:
+        verbose_name = "Promotion"
+        verbose_name_plural = "Promotions"
+        ordering = ["-year"]
+
+    def __str__(self):
+        if self.name:
+            return f"{self.year} — {self.name}"
+        return str(self.year)
+
+    @property
+    def members_count(self):
+        return self.members.filter(is_approved=True, is_active=True).count()
+
+
 class Member(AbstractUser):
     """Membre / Ancien élève du Lycée Houphouët-Boigny."""
 
+    MEMBERSHIP_CHOICES = [
+        ("simple", "Membre Simple"),
+        ("adherent", "Membre Adhérent"),
+    ]
+    COTISATION_CHOICES = [
+        ("mensuelle", "Mensuelle — 5 000 FCFA/mois"),
+        ("annuelle", "Annuelle — 60 000 FCFA/an"),
+    ]
+
     phone = models.CharField("Téléphone", max_length=20, blank=True)
-    promotion = models.CharField("Promotion / Année de sortie", max_length=10, blank=True)
-    profession = models.CharField("Profession", max_length=200, blank=True)
+    promotion = models.ForeignKey(
+        Promotion, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="members", verbose_name="Promotion"
+    )
+    membership_type = models.CharField(
+        "Type de membre", max_length=10, choices=MEMBERSHIP_CHOICES, default="simple"
+    )
+    cotisation_mode = models.CharField(
+        "Mode de cotisation", max_length=10, choices=COTISATION_CHOICES,
+        blank=True, help_text="Requis pour les membres adhérents"
+    )
+    profession = models.CharField("Profession", max_length=200)
     company = models.CharField("Entreprise / Organisation", max_length=200, blank=True)
     city = models.CharField("Ville", max_length=100, blank=True)
     country = models.CharField("Pays", max_length=100, default="Côte d'Ivoire")
@@ -24,7 +66,8 @@ class Member(AbstractUser):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.get_full_name()} ({self.promotion})"
+        promo = self.promotion.year if self.promotion else "?"
+        return f"{self.get_full_name()} ({promo})"
 
 
 class Testimonial(models.Model):

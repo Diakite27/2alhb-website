@@ -1,46 +1,79 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import (
-    Member, Testimonial, Event, NewsArticle,
+    Promotion, Member, Testimonial, Event, NewsArticle,
     Partner, GalleryImage, SiteStats, ContactMessage,
 )
 
 
+class PromotionSerializer(serializers.ModelSerializer):
+    members_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Promotion
+        fields = ["id", "year", "name", "photo", "description", "members_count"]
+
+
+class PromotionListSerializer(serializers.ModelSerializer):
+    """Version légère pour les listes / dropdowns."""
+    members_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Promotion
+        fields = ["id", "year", "name", "members_count"]
+
+
 class MemberPublicSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
+    promotion_year = serializers.SerializerMethodField()
+    promotion_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Member
         fields = [
-            "id", "full_name", "promotion", "profession",
-            "company", "city", "country", "photo", "linkedin",
+            "id", "full_name", "promotion", "promotion_year", "promotion_name",
+            "profession", "company", "city", "country", "photo", "linkedin",
         ]
 
     def get_full_name(self, obj):
         return obj.get_full_name()
 
+    def get_promotion_year(self, obj):
+        return obj.promotion.year if obj.promotion else None
+
+    def get_promotion_name(self, obj):
+        return obj.promotion.name if obj.promotion else ""
+
 
 class MemberRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
+    promotion_year = serializers.IntegerField(write_only=True, required=False)
 
     class Meta:
         model = Member
         fields = [
             "username", "email", "password", "password_confirm",
-            "first_name", "last_name", "phone", "promotion",
+            "first_name", "last_name", "phone", "promotion_year",
+            "membership_type", "cotisation_mode",
             "profession", "company", "city", "country", "bio", "photo", "linkedin",
         ]
 
     def validate(self, attrs):
         if attrs["password"] != attrs.pop("password_confirm"):
             raise serializers.ValidationError({"password_confirm": "Les mots de passe ne correspondent pas."})
+        if attrs.get("membership_type") == "adherent" and not attrs.get("cotisation_mode"):
+            raise serializers.ValidationError({"cotisation_mode": "Le mode de cotisation est requis pour les membres adhérents."})
         return attrs
 
     def create(self, validated_data):
         password = validated_data.pop("password")
+        promotion_year = validated_data.pop("promotion_year", None)
         member = Member(**validated_data)
         member.set_password(password)
+        if promotion_year:
+            promo, _ = Promotion.objects.get_or_create(year=promotion_year)
+            member.promotion = promo
         member.save()
         return member
 
