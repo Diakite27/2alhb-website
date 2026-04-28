@@ -105,3 +105,9 @@ export const FALLBACK_TESTIMONIALS = [
     created_at: "2025-03-10",
   },
 ];
+
+
+/** Format a number with space as thousands separator (consistent SSR/client) */
+export function formatPrice(n: number): string {
+  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}

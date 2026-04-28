@@ -7,7 +7,7 @@ from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
     Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
-    NewsletterSubscriber,
+    NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
 )
 from .serializers import (
     PromotionSerializer, PromotionListSerializer,
@@ -20,6 +20,7 @@ from .serializers import (
     BureauMemberSerializer, JobOfferSerializer, JobOfferCreateSerializer,
     FAQSerializer, ActivitySerializer, AssociationInfoSerializer,
     NewsletterSubscribeSerializer,
+    MemberDocumentSerializer, NotificationSerializer, CotisationPaymentSerializer,
 )
 
 
@@ -308,3 +309,73 @@ class GalleryAlbumDetailView(generics.RetrieveAPIView):
         return GalleryAlbum.objects.filter(is_published=True).annotate(
             photos_count=Count("images")
         ).prefetch_related("images")
+
+
+# --- Documents (members only) ---
+
+class MemberDocumentListView(generics.ListAPIView):
+    serializer_class = MemberDocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ["category"]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = MemberDocument.objects.all()
+        # Adherent-only docs restricted
+        if user.membership_type != "adherent":
+            qs = qs.filter(is_adherent_only=False)
+        return qs
+
+
+# --- Notifications ---
+
+class NotificationListView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(recipient=self.request.user)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def mark_notification_read(request, pk):
+    try:
+        notif = Notification.objects.get(pk=pk, recipient=request.user)
+        notif.is_read = True
+        notif.save()
+        return Response({"detail": "Notification marquée comme lue."})
+    except Notification.DoesNotExist:
+        return Response({"detail": "Notification non trouvée."}, status=404)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def mark_all_notifications_read(request):
+    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    return Response({"detail": "Toutes les notifications marquées comme lues."})
+
+
+# --- Cotisation Payments ---
+
+class CotisationPaymentListView(generics.ListAPIView):
+    serializer_class = CotisationPaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return CotisationPayment.objects.filter(member=self.request.user)
+
+
+# --- Annuaire (members only) ---
+
+class MemberDirectoryView(generics.ListAPIView):
+    """Annuaire complet réservé aux membres connectés."""
+    serializer_class = MemberPublicSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ["country", "promotion__year", "city"]
+    search_fields = ["first_name", "last_name", "profession", "company", "city"]
+
+    def get_queryset(self):
+        return Member.objects.filter(
+            is_approved=True, is_active=True
+        ).select_related("promotion").exclude(pk=self.request.user.pk)

@@ -10,6 +10,12 @@ urlpatterns = [
     # Auth / Profile
     path("auth/profile/", views.MemberProfileView.as_view(), name="member-profile"),
     path("auth/change-password/", views.ChangePasswordView.as_view(), name="change-password"),
+    path("auth/notifications/", views.NotificationListView.as_view(), name="notification-list"),
+    path("auth/notifications/<int:pk>/read/", views.mark_notification_read, name="notification-read"),
+    path("auth/notifications/read-all/", views.mark_all_notifications_read, name="notification-read-all"),
+    path("auth/payments/", views.CotisationPaymentListView.as_view(), name="payment-list"),
+    path("auth/documents/", views.MemberDocumentListView.as_view(), name="document-list"),
+    path("auth/directory/", views.MemberDirectoryView.as_view(), name="member-directory"),
 
     # Promotions
     path("promotions/", views.PromotionListView.as_view(), name="promotion-list"),

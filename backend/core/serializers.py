@@ -4,7 +4,7 @@ from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
     Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
-    NewsletterSubscriber,
+    NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
 )
 
 
@@ -326,3 +326,29 @@ class GalleryAlbumDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryAlbum
         fields = ["id", "title", "description", "cover_image", "event", "photos_count", "images", "created_at"]
+
+
+# --- Documents ---
+
+class MemberDocumentSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source="get_category_display", read_only=True)
+
+    class Meta:
+        model = MemberDocument
+        fields = ["id", "title", "category", "category_display", "file", "description", "is_adherent_only", "published_at"]
+
+
+# --- Notifications ---
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ["id", "title", "message", "notification_type", "is_read", "link", "created_at"]
+
+
+# --- Cotisation Payments ---
+
+class CotisationPaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CotisationPayment
+        fields = ["id", "amount", "period_label", "payment_method", "reference", "paid_at"]

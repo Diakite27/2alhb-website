@@ -425,3 +425,82 @@ class GalleryAlbum(models.Model):
     @property
     def photos_count(self):
         return self.images.count()
+
+
+class MemberDocument(models.Model):
+    """Document réservé aux membres adhérents (PV, rapports, newsletters)."""
+
+    CATEGORY_CHOICES = [
+        ("pv", "Procès-verbal d'AG"),
+        ("rapport", "Rapport financier"),
+        ("newsletter", "Newsletter"),
+        ("autre", "Autre document"),
+    ]
+
+    title = models.CharField("Titre", max_length=200)
+    category = models.CharField("Catégorie", max_length=20, choices=CATEGORY_CHOICES)
+    file = models.FileField("Fichier", upload_to="documents/")
+    description = models.TextField("Description", blank=True)
+    is_adherent_only = models.BooleanField("Réservé aux adhérents", default=True)
+    published_at = models.DateField("Date de publication")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Document"
+        verbose_name_plural = "Documents"
+        ordering = ["-published_at"]
+
+    def __str__(self):
+        return f"[{self.get_category_display()}] {self.title}"
+
+
+class Notification(models.Model):
+    """Notification pour un membre."""
+
+    TYPE_CHOICES = [
+        ("event", "Événement"),
+        ("job", "Offre d'emploi"),
+        ("cotisation", "Cotisation"),
+        ("document", "Document"),
+        ("general", "Général"),
+    ]
+
+    recipient = models.ForeignKey(
+        Member, on_delete=models.CASCADE, related_name="notifications", verbose_name="Destinataire"
+    )
+    title = models.CharField("Titre", max_length=200)
+    message = models.TextField("Message")
+    notification_type = models.CharField("Type", max_length=15, choices=TYPE_CHOICES, default="general")
+    is_read = models.BooleanField("Lu", default=False)
+    link = models.CharField("Lien", max_length=300, blank=True, help_text="URL relative vers la page concernée")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Notification"
+        verbose_name_plural = "Notifications"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} → {self.recipient.get_full_name()}"
+
+
+class CotisationPayment(models.Model):
+    """Historique des paiements de cotisation."""
+
+    member = models.ForeignKey(
+        Member, on_delete=models.CASCADE, related_name="payments", verbose_name="Membre"
+    )
+    amount = models.PositiveIntegerField("Montant (FCFA)")
+    period_label = models.CharField("Période", max_length=50, help_text="Ex: Avril 2026, Année 2026")
+    payment_method = models.CharField("Mode de paiement", max_length=50, blank=True)
+    reference = models.CharField("Référence", max_length=100, blank=True)
+    paid_at = models.DateField("Date de paiement")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Paiement de cotisation"
+        verbose_name_plural = "Paiements de cotisation"
+        ordering = ["-paid_at"]
+
+    def __str__(self):
+        return f"{self.member.get_full_name()} — {self.amount} FCFA ({self.period_label})"

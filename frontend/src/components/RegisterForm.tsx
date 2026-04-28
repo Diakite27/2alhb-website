@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { api, AssociationInfo } from "@/lib/api";
 import { useApiData } from "@/lib/hooks";
+import { formatPrice } from "@/lib/constants";
 
 const FALLBACK_INFO: AssociationInfo = {
   name: "2ALHB",
@@ -93,7 +94,7 @@ export default function RegisterForm() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-white font-bold text-lg">Membre Simple</h3>
-                <span className="text-orange font-bold text-xl">{info.adhesion_fee.toLocaleString()} FCFA</span>
+                <span className="text-orange font-bold text-xl">{formatPrice(info.adhesion_fee)} FCFA</span>
               </div>
               <p className="text-white/50 text-sm mb-4">Paiement unique — Droit d&apos;adhésion</p>
               <ul className="space-y-2 text-sm text-white/70">
@@ -116,12 +117,12 @@ export default function RegisterForm() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-white font-bold text-lg">Membre Adhérent</h3>
                 <div className="text-right">
-                  <span className="text-orange font-bold text-xl">{info.adhesion_fee.toLocaleString()} FCFA</span>
+                  <span className="text-orange font-bold text-xl">{formatPrice(info.adhesion_fee)} FCFA</span>
                   <span className="text-white/40 text-xs block">+ cotisation</span>
                 </div>
               </div>
               <p className="text-white/50 text-sm mb-4">
-                {info.monthly_fee.toLocaleString()} FCFA/mois ou {info.annual_fee.toLocaleString()} FCFA/an
+                {formatPrice(info.monthly_fee)} FCFA/mois ou {formatPrice(info.annual_fee)} FCFA/an
               </p>
               <ul className="space-y-2 text-sm text-white/70">
                 <li className="flex items-center gap-2">

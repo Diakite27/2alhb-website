@@ -8,6 +8,7 @@ import PageHeader from "@/components/PageHeader";
 import FAQ from "@/components/FAQ";
 import { api, AssociationInfo } from "@/lib/api";
 import { useApiData } from "@/lib/hooks";
+import { formatPrice } from "@/lib/constants";
 
 const FALLBACK_INFO: AssociationInfo = {
   name: "2ALHB",
@@ -298,7 +299,7 @@ export default function AdhesionPage() {
                             {form.membership_type === "simple" && <div className="w-2.5 h-2.5 rounded-full bg-orange" />}
                           </div>
                         </div>
-                        <p className="text-orange font-bold text-lg">{info.adhesion_fee.toLocaleString()} FCFA</p>
+                        <p className="text-orange font-bold text-lg">{formatPrice(info.adhesion_fee)} FCFA</p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">Droit d&apos;adhésion unique</p>
                       </button>
 
@@ -320,7 +321,7 @@ export default function AdhesionPage() {
                             {form.membership_type === "adherent" && <div className="w-2.5 h-2.5 rounded-full bg-orange" />}
                           </div>
                         </div>
-                        <p className="text-orange font-bold text-lg">{info.adhesion_fee.toLocaleString()} FCFA <span className="text-xs font-normal text-gray-400">+ cotisation</span></p>
+                        <p className="text-orange font-bold text-lg">{formatPrice(info.adhesion_fee)} FCFA <span className="text-xs font-normal text-gray-400">+ cotisation</span></p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">Adhésion + cotisation mensuelle ou annuelle</p>
                       </button>
                     </div>
@@ -333,7 +334,7 @@ export default function AdhesionPage() {
                       <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                         <li className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
-                          Droit d&apos;adhésion : <strong>{info.adhesion_fee.toLocaleString()} FCFA</strong> (paiement unique)
+                          Droit d&apos;adhésion : <strong>{formatPrice(info.adhesion_fee)} FCFA</strong> (paiement unique)
                         </li>
                         <li className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
@@ -352,7 +353,7 @@ export default function AdhesionPage() {
                         <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                           <li className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
-                            Droit d&apos;adhésion : <strong>{info.adhesion_fee.toLocaleString()} FCFA</strong>
+                            Droit d&apos;adhésion : <strong>{formatPrice(info.adhesion_fee)} FCFA</strong>
                           </li>
                           <li className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
@@ -382,7 +383,7 @@ export default function AdhesionPage() {
                                 : "border-gray-200 dark:border-dark-border hover:border-gray-300"
                             }`}
                           >
-                            <p className="font-bold text-green dark:text-green-light">{info.monthly_fee.toLocaleString()} FCFA</p>
+                            <p className="font-bold text-green dark:text-green-light">{formatPrice(info.monthly_fee)} FCFA</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">/ mois</p>
                           </button>
                           <button
@@ -394,7 +395,7 @@ export default function AdhesionPage() {
                                 : "border-gray-200 dark:border-dark-border hover:border-gray-300"
                             }`}
                           >
-                            <p className="font-bold text-green dark:text-green-light">{info.annual_fee.toLocaleString()} FCFA</p>
+                            <p className="font-bold text-green dark:text-green-light">{formatPrice(info.annual_fee)} FCFA</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">/ an</p>
                           </button>
                         </div>

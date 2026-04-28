@@ -4,7 +4,7 @@ from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
     Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
-    NewsletterSubscriber,
+    NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
 )
 
 
@@ -24,6 +24,20 @@ class MemberAdmin(UserAdmin):
     list_display = ["username", "get_full_name", "promotion", "membership_type", "profession", "country", "is_approved"]
     list_filter = ["is_approved", "country", "promotion__year", "membership_type"]
     search_fields = ["first_name", "last_name", "email", "promotion__year"]
+
+    add_fieldsets = (
+        (None, {
+            "classes": ("wide",),
+            "fields": ("username", "password1", "password2"),
+        }),
+        ("Informations personnelles", {
+            "fields": ("first_name", "last_name", "email", "phone"),
+        }),
+        ("Infos Alumni", {
+            "fields": ("promotion", "membership_type", "cotisation_mode", "profession", "company", "city", "country"),
+        }),
+    )
+
     fieldsets = UserAdmin.fieldsets + (
         ("Infos Alumni", {
             "fields": (
@@ -56,12 +70,14 @@ class NewsArticleAdmin(admin.ModelAdmin):
 
 @admin.register(Partner)
 class PartnerAdmin(admin.ModelAdmin):
-    list_display = ["name", "order"]
+    list_display = ["name", "website", "order"]
+    list_editable = ["order"]
 
 
 @admin.register(GalleryImage)
 class GalleryImageAdmin(admin.ModelAdmin):
-    list_display = ["title", "event", "created_at"]
+    list_display = ["title", "album", "event", "created_at"]
+    list_filter = ["album", "event"]
 
 
 @admin.register(SiteStats)
@@ -84,9 +100,13 @@ class ContactMessageAdmin(admin.ModelAdmin):
 
 @admin.register(BureauMember)
 class BureauMemberAdmin(admin.ModelAdmin):
-    list_display = ["display_name", "role", "category", "order"]
+    list_display = ["get_display_name", "role", "category", "order"]
     list_filter = ["category"]
     list_editable = ["order"]
+
+    @admin.display(description="Nom")
+    def get_display_name(self, obj):
+        return obj.display_name
 
 
 @admin.register(JobOffer)
@@ -143,3 +163,24 @@ class GalleryAlbumAdmin(admin.ModelAdmin):
     def photos_count(self, obj):
         return obj.images.count()
     photos_count.short_description = "Photos"
+
+
+@admin.register(MemberDocument)
+class MemberDocumentAdmin(admin.ModelAdmin):
+    list_display = ["title", "category", "is_adherent_only", "published_at"]
+    list_filter = ["category", "is_adherent_only"]
+    search_fields = ["title"]
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ["title", "recipient", "notification_type", "is_read", "created_at"]
+    list_filter = ["notification_type", "is_read"]
+    search_fields = ["title", "recipient__first_name", "recipient__last_name"]
+
+
+@admin.register(CotisationPayment)
+class CotisationPaymentAdmin(admin.ModelAdmin):
+    list_display = ["member", "amount", "period_label", "payment_method", "paid_at"]
+    list_filter = ["payment_method"]
+    search_fields = ["member__first_name", "member__last_name", "period_label"]
