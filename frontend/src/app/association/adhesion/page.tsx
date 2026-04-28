@@ -131,7 +131,7 @@ export default function AdhesionPage() {
     <>
       <PageHeader
         title="Devenir membre"
-        subtitle="Rejoignez la grande famille des anciens du Lycée Houphouët-Boigny et accédez à un réseau d'exception."
+        subtitle="Rejoignez la grande famille des anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo et accédez à un réseau d'exception."
         breadcrumbs={[
           { label: "L'Association", href: "#" },
           { label: "Adhésion", href: "/association/adhesion" },

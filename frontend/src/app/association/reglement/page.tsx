@@ -19,7 +19,7 @@ const titles: Title[] = [
     title: "Modalités d'adhésion – Maintien – Démission",
     articles: 3,
     content: [
-      "Article 1 : L'adhésion à la 2ALHB est ouverte à tout ancien élève du Lycée Houphouët-Boigny, sur présentation d'une demande écrite ou numérique.",
+      "Article 1 : L'adhésion à la 2ALHB est ouverte à tout ancien élève du Lycée HOUPHOUËT-BOIGNY de Korhogo, sur présentation d'une demande écrite ou numérique.",
       "Article 2 : Le maintien de la qualité de membre est conditionné au respect des statuts et du présent règlement.",
       "Article 3 : Tout membre souhaitant démissionner adresse une lettre au bureau exécutif.",
     ],

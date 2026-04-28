@@ -137,7 +137,7 @@ export default function PresentationPage() {
     <>
       <PageHeader
         title="Qui sommes-nous ?"
-        subtitle="L'histoire d'une amicale bâtie sur la fraternité, l'excellence et la solidarité entre anciens du Lycée Houphouët-Boigny."
+        subtitle="L'histoire d'une amicale bâtie sur la fraternité, l'excellence et la solidarité entre anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo."
         breadcrumbs={[
           { label: "L'Association", href: "#" },
           { label: "Présentation", href: "/association/presentation" },
@@ -158,7 +158,7 @@ export default function PresentationPage() {
                 <span className="text-orange">une famille.</span>
               </h2>
               <p className="text-body text-gray-600 dark:text-gray-400 leading-relaxed text-lg mb-4">
-                La 2ALHB rassemble les anciens élèves du Lycée Houphouët-Boigny
+                La 2ALHB rassemble les anciens élèves du Lycée HOUPHOUËT-BOIGNY de Korhogo
                 autour d&apos;une vision commune : perpétuer les valeurs qui ont forgé
                 des générations de leaders ivoiriens.
               </p>

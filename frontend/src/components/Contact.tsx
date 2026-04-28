@@ -89,7 +89,7 @@ export default function Contact() {
                 <div>
                   <p className="text-sm text-gray-500">Adresse</p>
                   <p className="font-medium text-green dark:text-green-light">
-                    Lycée Houphouët-Boigny, Korhogo — Côte d&apos;Ivoire
+                    Lycée HOUPHOUËT-BOIGNY de Korhogo — Côte d&apos;Ivoire
                   </p>
                 </div>
               </div>

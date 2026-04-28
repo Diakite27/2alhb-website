@@ -97,7 +97,7 @@ const JOB_OFFERS: JobOffer[] = [
   {
     id: 6,
     title: "Enseignant de Mathématiques",
-    company: "Lycée Houphouët-Boigny",
+    company: "Lycée HOUPHOUËT-BOIGNY de Korhogo",
     location: "Korhogo, Côte d'Ivoire",
     type: "cdd",
     sector: "Éducation",
@@ -420,7 +420,7 @@ export default function EmploisPage() {
                   </h2>
                   <p className="text-white/60 mb-8 max-w-lg mx-auto">
                     Partagez vos offres d&apos;emploi avec la communauté des anciens du
-                    Lycée Houphouët-Boigny. C&apos;est gratuit et réservé aux membres.
+                    Lycée HOUPHOUËT-BOIGNY de Korhogo. C&apos;est gratuit et réservé aux membres.
                   </p>
                   <button
                     onClick={() => setShowForm(true)}

@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 
 const partners = [
-  { name: "Lycée Houphouët-Boigny de Korhogo", logo: "/lhb.jpeg", url: "#" },
+  { name: "Lycée HOUPHOUËT-BOIGNY de Korhogo", logo: "/lhb.jpeg", url: "#" },
   { name: "DRENA Korhogo", logo: "/drena.jpg", url: "#" },
 ];
 

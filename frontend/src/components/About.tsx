@@ -28,7 +28,7 @@ const objectives = [
     icon: HandHeart,
     title: "Soutien au lycée",
     description:
-      "Soutenir le Lycée Houphouët-Boigny par des donations, bourses d'études et travaux d'infrastructure.",
+      "Soutenir le Lycée HOUPHOUËT-BOIGNY de Korhogo par des donations, bourses d'études et travaux d'infrastructure.",
   },
   {
     icon: Briefcase,
@@ -69,7 +69,7 @@ export default function About() {
           </h2>
           <div className="w-20 h-1 bg-orange mx-auto mb-6 rounded-full" />
           <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg">
-            L&apos;Amicale des Anciens du Lycée Houphouët-Boigny œuvre pour la
+            L&apos;Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo œuvre pour la
             solidarité, l&apos;excellence et le rayonnement de notre alma mater.
           </p>
         </motion.div>

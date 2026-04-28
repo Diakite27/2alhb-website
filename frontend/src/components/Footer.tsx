@@ -165,7 +165,7 @@ export default function Footer() {
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={14} className="text-orange mt-0.5 shrink-0" />
-                <span>Lycée Houphouët-Boigny<br />Korhogo — Côte d&apos;Ivoire</span>
+                <span>Lycée HOUPHOUËT-BOIGNY de Korhogo<br />Côte d&apos;Ivoire</span>
               </li>
             </ul>
           </div>

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   keywords: [
     "2ALHB",
-    "Lycée Houphouët-Boigny",
+    "Lycée HOUPHOUËT-BOIGNY de Korhogo",
     "anciens élèves",
     "alumni",
     "Korhogo",

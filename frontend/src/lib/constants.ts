@@ -1,8 +1,8 @@
 export const SITE_NAME = "2ALHB";
-export const SITE_FULL_NAME = "Amicale des Anciens du Lycée Houphouët-Boigny";
-export const SITE_SLOGAN = "L'empreinte de l'excellence et de la fraternité";
+export const SITE_FULL_NAME = "Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo";
+export const SITE_SLOGAN = "Connecter les anciens, inspirer les générations futures";
 export const SITE_DESCRIPTION =
-  "Rejoignez le réseau des anciens élèves du Lycée Houphouët-Boigny. Solidarité, excellence et fraternité.";
+  "Rejoignez le réseau des anciens élèves du Lycée HOUPHOUËT-BOIGNY de Korhogo. Solidarité, excellence et fraternité.";
 
 export interface NavSubItem {
   label: string;
@@ -27,6 +27,7 @@ export const NAV_LINKS: NavItem[] = [
       { label: "Adhésion", description: "Rejoignez le réseau des anciens", href: "/association/adhesion" },
       { label: "Statuts", description: "Consultez les statuts officiels", href: "/association/statuts" },
       { label: "Règlement", description: "Consultez le règlement intérieur", href: "/association/reglement" },
+      { label: "Plan d'activités", description: "Découvrez nos projets et actions prévues", href: "/association/plan-activites" },
     ],
   },
   { label: "Événements", href: "/evenements" },
@@ -63,7 +64,7 @@ export const FALLBACK_TESTIMONIALS = [
       linkedin: "",
     },
     content:
-      "Le Lycée Houphouët-Boigny m'a donné les bases solides qui ont façonné ma carrière. Grâce à la 2ALHB, je reste connecté avec mes anciens camarades et ensemble, nous contribuons au rayonnement de notre alma mater.",
+      "Le Lycée HOUPHOUËT-BOIGNY de Korhogo m'a donné les bases solides qui ont façonné ma carrière. Grâce à la 2ALHB, je reste connecté avec mes anciens camarades et ensemble, nous contribuons au rayonnement de notre alma mater.",
     is_featured: true,
     created_at: "2025-01-15",
   },

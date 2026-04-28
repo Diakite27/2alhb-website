@@ -13,7 +13,7 @@ const faqs: FAQItem[] = [
   {
     question: "Qui peut adhérer à la 2ALHB ?",
     answer:
-      "Tout ancien élève du Lycée Houphouët-Boigny, quelle que soit sa promotion ou son lieu de résidence actuel, peut demander à adhérer à l'amicale.",
+      "Tout ancien élève du Lycée HOUPHOUËT-BOIGNY de Korhogo, quelle que soit sa promotion ou son lieu de résidence actuel, peut demander à adhérer à l'amicale.",
   },
   {
     question: "L'adhésion est-elle payante ?",

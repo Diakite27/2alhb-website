@@ -3,7 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import Image from "next/image";
-import { SITE_FULL_NAME, SITE_SLOGAN } from "@/lib/constants";
+import { SITE_FULL_NAME } from "@/lib/constants";
 import CounterStats from "./CounterStats";
 
 export default function Hero() {
@@ -28,7 +28,7 @@ export default function Hero() {
       <motion.div className="absolute inset-0" style={{ y: imageY, willChange: "transform" }}>
         <Image
           src="/nav.jpeg"
-          alt="Lycée Houphouët-Boigny"
+          alt="Lycée HOUPHOUËT-BOIGNY de Korhogo"
           fill
           className="object-cover object-[center_30%] sm:object-center"
           sizes="100vw"
@@ -72,9 +72,11 @@ export default function Hero() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-xs sm:text-base md:text-lg text-orange font-semibold italic mb-6 sm:mb-10 drop-shadow-md"
+            className="text-xs sm:text-base md:text-lg font-semibold italic mb-6 sm:mb-10 drop-shadow-md"
           >
-            {SITE_SLOGAN}
+            <span className="text-orange">Connecter les anciens</span>
+            <span className="text-white/60">, </span>
+            <span className="text-green-light">inspirer les générations futures</span>
           </motion.p>
 
           <motion.div

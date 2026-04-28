@@ -61,7 +61,7 @@ const EVENTS: EventItem[] = [
       "Un week-end dédié aux promotions 2000 à 2005. Visite du lycée, déjeuner convivial et soirée de retrouvailles.",
     date: "2026-09-12",
     time: "10:00",
-    location: "Lycée Houphouët-Boigny, Korhogo",
+    location: "Lycée HOUPHOUËT-BOIGNY de Korhogo",
     category: "retrouvailles",
   },
   {
@@ -71,7 +71,7 @@ const EVENTS: EventItem[] = [
       "Distribution de fournitures scolaires et de bourses aux élèves méritants du LHB. Mobilisation de tous les membres.",
     date: "2026-09-28",
     time: "08:30",
-    location: "Lycée Houphouët-Boigny, Korhogo",
+    location: "Lycée HOUPHOUËT-BOIGNY de Korhogo",
     category: "solidarite",
   },
   {
