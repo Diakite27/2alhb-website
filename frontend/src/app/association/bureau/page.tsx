@@ -5,27 +5,22 @@ import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import { api, BureauMember } from "@/lib/api";
+import { useApiList } from "@/lib/hooks";
 
-interface BureauMember {
-  name: string;
-  role: string;
-  initials: string;
-  category: "direction" | "commission";
-}
-
-const bureauMembers: BureauMember[] = [
-  { name: "À définir", role: "Président(e)", initials: "PR", category: "direction" },
-  { name: "À définir", role: "Vice-Président(e)", initials: "VP", category: "direction" },
-  { name: "À définir", role: "Secrétaire Général(e)", initials: "SG", category: "direction" },
-  { name: "À définir", role: "Secrétaire Général(e) Adjoint(e)", initials: "SA", category: "direction" },
-  { name: "À définir", role: "Trésorier(ère)", initials: "TR", category: "direction" },
-  { name: "À définir", role: "Trésorier(ère) Adjoint(e)", initials: "TA", category: "direction" },
-  { name: "À définir", role: "Responsable Organisation", initials: "RO", category: "commission" },
-  { name: "À définir", role: "Responsable Communication", initials: "RC", category: "commission" },
-  { name: "À définir", role: "Commission Insertion Professionnelle", initials: "CI", category: "commission" },
-  { name: "À définir", role: "Commission Solidarité & Entraide", initials: "CS", category: "commission" },
-  { name: "À définir", role: "Responsable Diaspora", initials: "RD", category: "commission" },
-  { name: "À définir", role: "Commission Consultative", initials: "CC", category: "commission" },
+const FALLBACK_BUREAU: BureauMember[] = [
+  { id: 1, display_name: "À définir", role: "Président(e)", initials: "PR", category: "direction", photo_url: null, order: 1 },
+  { id: 2, display_name: "À définir", role: "Vice-Président(e)", initials: "VP", category: "direction", photo_url: null, order: 2 },
+  { id: 3, display_name: "À définir", role: "Secrétaire Général(e)", initials: "SG", category: "direction", photo_url: null, order: 3 },
+  { id: 4, display_name: "À définir", role: "Secrétaire Général(e) Adjoint(e)", initials: "SA", category: "direction", photo_url: null, order: 4 },
+  { id: 5, display_name: "À définir", role: "Trésorier(ère)", initials: "TR", category: "direction", photo_url: null, order: 5 },
+  { id: 6, display_name: "À définir", role: "Trésorier(ère) Adjoint(e)", initials: "TA", category: "direction", photo_url: null, order: 6 },
+  { id: 7, display_name: "À définir", role: "Responsable Organisation", initials: "RO", category: "commission", photo_url: null, order: 7 },
+  { id: 8, display_name: "À définir", role: "Responsable Communication", initials: "RC", category: "commission", photo_url: null, order: 8 },
+  { id: 9, display_name: "À définir", role: "Commission Insertion Professionnelle", initials: "CI", category: "commission", photo_url: null, order: 9 },
+  { id: 10, display_name: "À définir", role: "Commission Solidarité & Entraide", initials: "CS", category: "commission", photo_url: null, order: 10 },
+  { id: 11, display_name: "À définir", role: "Responsable Diaspora", initials: "RD", category: "commission", photo_url: null, order: 11 },
+  { id: 12, display_name: "À définir", role: "Commission Consultative", initials: "CC", category: "commission", photo_url: null, order: 12 },
 ];
 
 function AnimSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
@@ -38,10 +33,12 @@ function AnimSection({ children, className = "", delay = 0 }: { children: React.
   );
 }
 
-const direction = bureauMembers.filter((m) => m.category === "direction");
-const commissions = bureauMembers.filter((m) => m.category === "commission");
-
 export default function BureauPage() {
+  const { data: bureauMembers } = useApiList(() => api.getBureau(), FALLBACK_BUREAU);
+
+  const direction = bureauMembers.filter((m) => m.category === "direction");
+  const commissions = bureauMembers.filter((m) => m.category === "commission");
+
   return (
     <>
       <PageHeader
@@ -74,7 +71,7 @@ export default function BureauPage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {direction.map((member, i) => (
                 <div
-                  key={i}
+                  key={member.id ?? i}
                   className="flex items-center gap-4 p-5 rounded-2xl bg-gray-50 dark:bg-dark-card hover:bg-orange/5 dark:hover:bg-orange/10 transition-all group cursor-default"
                 >
                   <div className="w-14 h-14 bg-gradient-to-br from-green to-green-light rounded-xl flex items-center justify-center shrink-0 group-hover:from-orange group-hover:to-orange-dark transition-all">
@@ -82,7 +79,7 @@ export default function BureauPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-green dark:text-green-light group-hover:text-orange transition-colors">
-                      {member.name}
+                      {member.display_name}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{member.role}</p>
                   </div>
@@ -101,7 +98,7 @@ export default function BureauPage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {commissions.map((member, i) => (
                 <div
-                  key={i}
+                  key={member.id ?? i}
                   className="flex items-center gap-4 p-5 rounded-2xl bg-gray-50 dark:bg-dark-card hover:bg-green/5 dark:hover:bg-green/10 transition-all group cursor-default"
                 >
                   <div className="w-14 h-14 bg-gradient-to-br from-orange/80 to-orange rounded-xl flex items-center justify-center shrink-0 group-hover:from-green group-hover:to-green-light transition-all">
@@ -109,7 +106,7 @@ export default function BureauPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-green dark:text-green-light group-hover:text-orange transition-colors">
-                      {member.name}
+                      {member.display_name}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{member.role}</p>
                   </div>

@@ -5,6 +5,22 @@ import { motion, useInView } from "framer-motion";
 import { UserPlus, ArrowRight, Users, Shield, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { api, AssociationInfo } from "@/lib/api";
+import { useApiData } from "@/lib/hooks";
+
+const FALLBACK_INFO: AssociationInfo = {
+  name: "2ALHB",
+  full_name: "Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo",
+  slogan: "Connecter les anciens, inspirer les générations futures",
+  email: "contact@2alhb.ci",
+  phone: "+225 07 00 00 00 00",
+  address: "Lycée HOUPHOUËT-BOIGNY de Korhogo\nCôte d'Ivoire",
+  facebook_url: "https://facebook.com/2alhb",
+  linkedin_url: "https://linkedin.com/company/2alhb",
+  adhesion_fee: 5000,
+  monthly_fee: 5000,
+  annual_fee: 60000,
+};
 
 const highlights = [
   { icon: Users, text: "Rejoignez 500+ anciens élèves" },
@@ -15,6 +31,7 @@ const highlights = [
 export default function RegisterForm() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { data: info } = useApiData(() => api.getInfo(), FALLBACK_INFO);
 
   return (
     <section id="register" className="py-14 lg:py-24 bg-gradient-to-br from-green-dark via-green to-green-light relative overflow-hidden">
@@ -76,7 +93,7 @@ export default function RegisterForm() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-white font-bold text-lg">Membre Simple</h3>
-                <span className="text-orange font-bold text-xl">5 000 FCFA</span>
+                <span className="text-orange font-bold text-xl">{info.adhesion_fee.toLocaleString()} FCFA</span>
               </div>
               <p className="text-white/50 text-sm mb-4">Paiement unique — Droit d&apos;adhésion</p>
               <ul className="space-y-2 text-sm text-white/70">
@@ -99,12 +116,12 @@ export default function RegisterForm() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-white font-bold text-lg">Membre Adhérent</h3>
                 <div className="text-right">
-                  <span className="text-orange font-bold text-xl">5 000 FCFA</span>
+                  <span className="text-orange font-bold text-xl">{info.adhesion_fee.toLocaleString()} FCFA</span>
                   <span className="text-white/40 text-xs block">+ cotisation</span>
                 </div>
               </div>
               <p className="text-white/50 text-sm mb-4">
-                5 000 FCFA/mois ou 60 000 FCFA/an
+                {info.monthly_fee.toLocaleString()} FCFA/mois ou {info.annual_fee.toLocaleString()} FCFA/an
               </p>
               <ul className="space-y-2 text-sm text-white/70">
                 <li className="flex items-center gap-2">

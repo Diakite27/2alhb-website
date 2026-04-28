@@ -8,91 +8,86 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import PageHeader from "@/components/PageHeader";
+import { api, Event } from "@/lib/api";
+import { useApiList } from "@/lib/hooks";
 
-interface EventItem {
-  id: number;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  category: "gala" | "sport" | "forum" | "retrouvailles" | "solidarite";
-  isFeatured?: boolean;
-}
-
-const EVENTS: EventItem[] = [
+const FALLBACK_EVENTS: Event[] = [
   {
     id: 1,
     title: "Dîner Gala Annuel 2ALHB",
     description:
       "Retrouvailles et célébration de l'excellence. Une soirée de gala réunissant toutes les générations d'anciens élèves autour d'un dîner prestigieux.",
-    date: "2026-06-15",
-    time: "19:00",
+    date: "2026-06-15T19:00:00",
     location: "Hôtel Ivoire, Abidjan",
     category: "gala",
-    isFeatured: true,
+    image: null,
+    is_featured: true,
   },
   {
     id: 2,
     title: "Tournoi Sportif Inter-Promotions",
     description:
       "Football, basketball et athlétisme. Un moment de convivialité et de compétition amicale entre promotions du LHB.",
-    date: "2026-07-20",
-    time: "08:00",
+    date: "2026-07-20T08:00:00",
     location: "Stade du Lycée HB, Korhogo",
     category: "sport",
-    isFeatured: true,
+    image: null,
+    is_featured: true,
   },
   {
     id: 3,
     title: "Forum Mentorat & Insertion",
     description:
       "Accompagnement des jeunes diplômés par les aînés. Ateliers CV, simulations d'entretien, networking et partage d'expériences.",
-    date: "2026-08-10",
-    time: "09:00",
+    date: "2026-08-10T09:00:00",
     location: "Salle de conférence, Plateau, Abidjan",
     category: "forum",
-    isFeatured: true,
+    image: null,
+    is_featured: true,
   },
   {
     id: 4,
     title: "Retrouvailles Promotion 2000-2005",
     description:
       "Un week-end dédié aux promotions 2000 à 2005. Visite du lycée, déjeuner convivial et soirée de retrouvailles.",
-    date: "2026-09-12",
-    time: "10:00",
+    date: "2026-09-12T10:00:00",
     location: "Lycée HOUPHOUËT-BOIGNY de Korhogo",
     category: "retrouvailles",
+    image: null,
+    is_featured: false,
   },
   {
     id: 5,
     title: "Journée de Solidarité — Rentrée Scolaire",
     description:
       "Distribution de fournitures scolaires et de bourses aux élèves méritants du LHB. Mobilisation de tous les membres.",
-    date: "2026-09-28",
-    time: "08:30",
+    date: "2026-09-28T08:30:00",
     location: "Lycée HOUPHOUËT-BOIGNY de Korhogo",
     category: "solidarite",
+    image: null,
+    is_featured: false,
   },
   {
     id: 6,
     title: "Afterwork Networking — Abidjan",
     description:
       "Soirée décontractée pour élargir son réseau professionnel. Échanges entre anciens de toutes promotions dans un cadre convivial.",
-    date: "2026-10-18",
-    time: "18:30",
+    date: "2026-10-18T18:30:00",
     location: "Rooftop Le Plateau, Abidjan",
     category: "forum",
+    image: null,
+    is_featured: false,
   },
   {
     id: 7,
     title: "Assemblée Générale Annuelle",
     description:
       "Bilan de l'année, élection du bureau, présentation des projets à venir. Tous les membres sont invités à participer.",
-    date: "2026-12-14",
-    time: "09:00",
+    date: "2026-12-14T09:00:00",
     location: "Salle polyvalente, Korhogo",
     category: "retrouvailles",
+    image: null,
+    is_featured: false,
   },
 ];
 
@@ -112,6 +107,11 @@ function formatDate(dateStr: string) {
   });
 }
 
+function extractTime(dateStr: string) {
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+}
+
 function AnimSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
@@ -122,8 +122,9 @@ function AnimSection({ children, className = "", delay = 0 }: { children: React.
   );
 }
 
-function FeaturedEvent({ event, index }: { event: EventItem; index: number }) {
-  const cat = categoryLabels[event.category];
+function FeaturedEvent({ event, index }: { event: Event; index: number }) {
+  const cat = categoryLabels[event.category] ?? { label: event.category, color: "bg-gray-500 text-white" };
+  const time = extractTime(event.date);
   return (
     <AnimSection delay={index * 0.1}>
       <div className="bg-white dark:bg-dark-card rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 border border-gray-100 dark:border-dark-border">
@@ -159,7 +160,7 @@ function FeaturedEvent({ event, index }: { event: EventItem; index: number }) {
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               <Clock size={14} className="text-orange shrink-0" />
-              <span>{event.time}</span>
+              <span>{time}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               <MapPin size={14} className="text-orange shrink-0" />
@@ -176,8 +177,9 @@ function FeaturedEvent({ event, index }: { event: EventItem; index: number }) {
   );
 }
 
-function EventRow({ event, index }: { event: EventItem; index: number }) {
-  const cat = categoryLabels[event.category];
+function EventRow({ event, index }: { event: Event; index: number }) {
+  const cat = categoryLabels[event.category] ?? { label: event.category, color: "bg-gray-500 text-white" };
+  const time = extractTime(event.date);
   return (
     <AnimSection delay={index * 0.05}>
       <div className="flex flex-col sm:flex-row gap-5 p-5 bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border hover:shadow-md hover:border-orange/20 transition-all group">
@@ -206,7 +208,7 @@ function EventRow({ event, index }: { event: EventItem; index: number }) {
           </p>
           <div className="flex flex-wrap gap-4 text-xs text-gray-400 dark:text-gray-500">
             <span className="flex items-center gap-1">
-              <Clock size={12} /> {event.time}
+              <Clock size={12} /> {time}
             </span>
             <span className="flex items-center gap-1">
               <MapPin size={12} /> {event.location}
@@ -219,8 +221,10 @@ function EventRow({ event, index }: { event: EventItem; index: number }) {
 }
 
 export default function EvenementsPage() {
-  const featured = EVENTS.filter((e) => e.isFeatured);
-  const upcoming = EVENTS.filter((e) => !e.isFeatured);
+  const { data: events } = useApiList(() => api.getEvents(), FALLBACK_EVENTS);
+
+  const featured = events.filter((e) => e.is_featured);
+  const upcoming = events.filter((e) => !e.is_featured);
 
   return (
     <>
@@ -264,13 +268,13 @@ export default function EvenementsPage() {
                   </h2>
                 </div>
                 <span className="text-sm text-gray-400 dark:text-gray-500">
-                  {EVENTS.length} événements
+                  {events.length} événements
                 </span>
               </div>
             </AnimSection>
 
             <div className="space-y-4">
-              {EVENTS.map((event, i) => (
+              {events.map((event, i) => (
                 <EventRow key={event.id} event={event} index={i} />
               ))}
             </div>

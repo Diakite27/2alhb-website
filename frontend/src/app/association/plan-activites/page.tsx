@@ -15,16 +15,10 @@ import {
   Target,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import { api, Activity } from "@/lib/api";
+import { useApiList } from "@/lib/hooks";
 
 type Quarter = "Q1" | "Q2" | "Q3" | "Q4";
-
-interface Activity {
-  title: string;
-  description: string;
-  date: string;
-  status: "done" | "in-progress" | "upcoming";
-  icon: React.ComponentType<{ className?: string; size?: number }>;
-}
 
 interface QuarterData {
   label: string;
@@ -32,118 +26,64 @@ interface QuarterData {
   activities: Activity[];
 }
 
-const plan: Record<Quarter, QuarterData> = {
-  Q1: {
-    label: "1er Trimestre",
-    period: "Janvier — Mars 2026",
-    activities: [
-      {
-        title: "Assemblée Générale Ordinaire",
-        description: "Bilan de l'année écoulée, adoption du budget prévisionnel et renouvellement partiel du bureau.",
-        date: "Janvier 2026",
-        status: "done",
-        icon: Users,
-      },
-      {
-        title: "Campagne d'adhésion",
-        description: "Lancement de la campagne annuelle de recrutement de nouveaux membres. Objectif : 100 nouveaux adhérents.",
-        date: "Février 2026",
-        status: "done",
-        icon: Target,
-      },
-      {
-        title: "Journée portes ouvertes au lycée",
-        description: "Visite du Lycée HOUPHOUËT-BOIGNY de Korhogo avec les anciens. Échanges avec les élèves actuels et le corps enseignant.",
-        date: "Mars 2026",
-        status: "done",
-        icon: GraduationCap,
-      },
-    ],
-  },
-  Q2: {
-    label: "2e Trimestre",
-    period: "Avril — Juin 2026",
-    activities: [
-      {
-        title: "Programme de mentorat — Cohorte 2",
-        description: "Lancement de la deuxième cohorte de mentorat. Jumelage de 30 jeunes diplômés avec des aînés expérimentés.",
-        date: "Avril 2026",
-        status: "in-progress",
-        icon: Users,
-      },
-      {
-        title: "Forum Emploi & Insertion",
-        description: "Salon professionnel réservé aux membres. Stands d'entreprises partenaires, ateliers CV et simulations d'entretien.",
-        date: "Mai 2026",
-        status: "upcoming",
-        icon: Trophy,
-      },
-      {
-        title: "Dîner Gala Annuel",
-        description: "Soirée de gala réunissant toutes les générations. Remise de prix d'excellence et levée de fonds pour le lycée.",
-        date: "Juin 2026",
-        status: "upcoming",
-        icon: Heart,
-      },
-    ],
-  },
-  Q3: {
-    label: "3e Trimestre",
-    period: "Juillet — Septembre 2026",
-    activities: [
-      {
-        title: "Tournoi sportif inter-promotions",
-        description: "Compétitions de football, basketball et athlétisme entre promotions. Moment de convivialité et de retrouvailles.",
-        date: "Juillet 2026",
-        status: "upcoming",
-        icon: Trophy,
-      },
-      {
-        title: "Action solidaire — Rentrée scolaire",
-        description: "Distribution de kits scolaires, bourses d'études et rénovation d'une salle de classe du lycée.",
-        date: "Septembre 2026",
-        status: "upcoming",
-        icon: Heart,
-      },
-      {
-        title: "Retrouvailles promotions 2000-2010",
-        description: "Week-end dédié aux promotions 2000 à 2010. Visite du lycée, déjeuner et soirée de retrouvailles.",
-        date: "Septembre 2026",
-        status: "upcoming",
-        icon: Users,
-      },
-    ],
-  },
-  Q4: {
-    label: "4e Trimestre",
-    period: "Octobre — Décembre 2026",
-    activities: [
-      {
-        title: "Conférence annuelle",
-        description: "Conférence thématique ouverte au public. Intervenants : anciens élèves devenus leaders dans leurs domaines.",
-        date: "Octobre 2026",
-        status: "upcoming",
-        icon: GraduationCap,
-      },
-      {
-        title: "Expansion diaspora",
-        description: "Création des antennes 2ALHB à Paris, Dakar et Casablanca. Nomination des responsables diaspora.",
-        date: "Novembre 2026",
-        status: "upcoming",
-        icon: Globe,
-      },
-      {
-        title: "Bilan annuel & Fête de fin d'année",
-        description: "Présentation du bilan des activités, célébration des réussites de l'année et lancement du plan 2027.",
-        date: "Décembre 2026",
-        status: "upcoming",
-        icon: Calendar,
-      },
-    ],
-  },
+const iconMap: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
+  "Assemblée Générale Ordinaire": Users,
+  "Campagne d'adhésion": Target,
+  "Journée portes ouvertes au lycée": GraduationCap,
+  "Programme de mentorat — Cohorte 2": Users,
+  "Forum Emploi & Insertion": Trophy,
+  "Dîner Gala Annuel": Heart,
+  "Tournoi sportif inter-promotions": Trophy,
+  "Action solidaire — Rentrée scolaire": Heart,
+  "Retrouvailles promotions 2000-2010": Users,
+  "Conférence annuelle": GraduationCap,
+  "Expansion diaspora": Globe,
+  "Bilan annuel & Fête de fin d'année": Calendar,
+};
+
+function getActivityIcon(title: string) {
+  return iconMap[title] ?? Calendar;
+}
+
+const FALLBACK_ACTIVITIES: Activity[] = [
+  { id: 1, title: "Assemblée Générale Ordinaire", description: "Bilan de l'année écoulée, adoption du budget prévisionnel et renouvellement partiel du bureau.", quarter: "Q1", year: 2026, date_label: "Janvier 2026", status: "done", order: 1 },
+  { id: 2, title: "Campagne d'adhésion", description: "Lancement de la campagne annuelle de recrutement de nouveaux membres. Objectif : 100 nouveaux adhérents.", quarter: "Q1", year: 2026, date_label: "Février 2026", status: "done", order: 2 },
+  { id: 3, title: "Journée portes ouvertes au lycée", description: "Visite du Lycée HOUPHOUËT-BOIGNY de Korhogo avec les anciens. Échanges avec les élèves actuels et le corps enseignant.", quarter: "Q1", year: 2026, date_label: "Mars 2026", status: "done", order: 3 },
+  { id: 4, title: "Programme de mentorat — Cohorte 2", description: "Lancement de la deuxième cohorte de mentorat. Jumelage de 30 jeunes diplômés avec des aînés expérimentés.", quarter: "Q2", year: 2026, date_label: "Avril 2026", status: "in-progress", order: 4 },
+  { id: 5, title: "Forum Emploi & Insertion", description: "Salon professionnel réservé aux membres. Stands d'entreprises partenaires, ateliers CV et simulations d'entretien.", quarter: "Q2", year: 2026, date_label: "Mai 2026", status: "upcoming", order: 5 },
+  { id: 6, title: "Dîner Gala Annuel", description: "Soirée de gala réunissant toutes les générations. Remise de prix d'excellence et levée de fonds pour le lycée.", quarter: "Q2", year: 2026, date_label: "Juin 2026", status: "upcoming", order: 6 },
+  { id: 7, title: "Tournoi sportif inter-promotions", description: "Compétitions de football, basketball et athlétisme entre promotions. Moment de convivialité et de retrouvailles.", quarter: "Q3", year: 2026, date_label: "Juillet 2026", status: "upcoming", order: 7 },
+  { id: 8, title: "Action solidaire — Rentrée scolaire", description: "Distribution de kits scolaires, bourses d'études et rénovation d'une salle de classe du lycée.", quarter: "Q3", year: 2026, date_label: "Septembre 2026", status: "upcoming", order: 8 },
+  { id: 9, title: "Retrouvailles promotions 2000-2010", description: "Week-end dédié aux promotions 2000 à 2010. Visite du lycée, déjeuner et soirée de retrouvailles.", quarter: "Q3", year: 2026, date_label: "Septembre 2026", status: "upcoming", order: 9 },
+  { id: 10, title: "Conférence annuelle", description: "Conférence thématique ouverte au public. Intervenants : anciens élèves devenus leaders dans leurs domaines.", quarter: "Q4", year: 2026, date_label: "Octobre 2026", status: "upcoming", order: 10 },
+  { id: 11, title: "Expansion diaspora", description: "Création des antennes 2ALHB à Paris, Dakar et Casablanca. Nomination des responsables diaspora.", quarter: "Q4", year: 2026, date_label: "Novembre 2026", status: "upcoming", order: 11 },
+  { id: 12, title: "Bilan annuel & Fête de fin d'année", description: "Présentation du bilan des activités, célébration des réussites de l'année et lancement du plan 2027.", quarter: "Q4", year: 2026, date_label: "Décembre 2026", status: "upcoming", order: 12 },
+];
+
+const quarterMeta: Record<Quarter, { label: string; period: string }> = {
+  Q1: { label: "1er Trimestre", period: "Janvier — Mars 2026" },
+  Q2: { label: "2e Trimestre", period: "Avril — Juin 2026" },
+  Q3: { label: "3e Trimestre", period: "Juillet — Septembre 2026" },
+  Q4: { label: "4e Trimestre", period: "Octobre — Décembre 2026" },
 };
 
 const quarters: Quarter[] = ["Q1", "Q2", "Q3", "Q4"];
+
+function groupByQuarter(activities: Activity[]): Record<Quarter, QuarterData> {
+  const result: Record<Quarter, QuarterData> = {
+    Q1: { ...quarterMeta.Q1, activities: [] },
+    Q2: { ...quarterMeta.Q2, activities: [] },
+    Q3: { ...quarterMeta.Q3, activities: [] },
+    Q4: { ...quarterMeta.Q4, activities: [] },
+  };
+  for (const activity of activities) {
+    const q = activity.quarter as Quarter;
+    if (result[q]) {
+      result[q].activities.push(activity);
+    }
+  }
+  return result;
+}
 
 const statusConfig = {
   done: { label: "Réalisé", color: "bg-green text-white", icon: CheckCircle2 },
@@ -197,13 +137,14 @@ function QuarterSection({ quarter, data }: { quarter: Quarter; data: QuarterData
             <div className="space-y-4">
               {data.activities.map((activity, i) => {
                 const st = statusConfig[activity.status];
+                const Icon = getActivityIcon(activity.title);
                 return (
                   <div
-                    key={i}
+                    key={activity.id ?? i}
                     className="flex gap-4 p-4 rounded-xl bg-gray-50 dark:bg-dark-bg hover:bg-gray-100 dark:hover:bg-dark-border/50 transition-colors"
                   >
                     <div className="w-10 h-10 bg-orange/10 rounded-lg flex items-center justify-center shrink-0">
-                      <activity.icon className="text-orange" size={20} />
+                      <Icon className="text-orange" size={20} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -217,7 +158,7 @@ function QuarterSection({ quarter, data }: { quarter: Quarter; data: QuarterData
                       <p className="text-body text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-1">
                         {activity.description}
                       </p>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">{activity.date}</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">{activity.date_label}</span>
                     </div>
                   </div>
                 );
@@ -231,9 +172,13 @@ function QuarterSection({ quarter, data }: { quarter: Quarter; data: QuarterData
 }
 
 export default function PlanActivitesPage() {
-  const done = Object.values(plan).flatMap((q) => q.activities).filter((a) => a.status === "done").length;
-  const inProgress = Object.values(plan).flatMap((q) => q.activities).filter((a) => a.status === "in-progress").length;
-  const upcoming = Object.values(plan).flatMap((q) => q.activities).filter((a) => a.status === "upcoming").length;
+  const { data: activities } = useApiList(() => api.getActivities(), FALLBACK_ACTIVITIES);
+  const plan = groupByQuarter(activities);
+
+  const allActivities = Object.values(plan).flatMap((q) => q.activities);
+  const done = allActivities.filter((a) => a.status === "done").length;
+  const inProgress = allActivities.filter((a) => a.status === "in-progress").length;
+  const upcoming = allActivities.filter((a) => a.status === "upcoming").length;
   const total = done + inProgress + upcoming;
 
   return (
@@ -270,17 +215,17 @@ export default function PlanActivitesPage() {
             <div className="mt-6">
               <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
                 <span>Progression annuelle</span>
-                <span>{Math.round((done / total) * 100)}%</span>
+                <span>{total > 0 ? Math.round((done / total) * 100) : 0}%</span>
               </div>
               <div className="h-2 bg-gray-100 dark:bg-dark-border rounded-full overflow-hidden">
                 <div className="h-full flex">
                   <div
                     className="bg-green rounded-l-full"
-                    style={{ width: `${(done / total) * 100}%` }}
+                    style={{ width: `${total > 0 ? (done / total) * 100 : 0}%` }}
                   />
                   <div
                     className="bg-orange"
-                    style={{ width: `${(inProgress / total) * 100}%` }}
+                    style={{ width: `${total > 0 ? (inProgress / total) * 100 : 0}%` }}
                   />
                 </div>
               </div>

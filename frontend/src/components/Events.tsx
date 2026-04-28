@@ -4,8 +4,10 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
 import TiltCard from "./TiltCard";
+import { api, Event } from "@/lib/api";
+import { useApiList } from "@/lib/hooks";
 
-const DEMO_EVENTS = [
+const FALLBACK_EVENTS: Event[] = [
   {
     id: 1,
     title: "Dîner Gala Annuel 2ALHB",
@@ -13,6 +15,9 @@ const DEMO_EVENTS = [
       "Retrouvailles et célébration de l'excellence. Une soirée de gala réunissant toutes les générations d'anciens élèves.",
     date: "2026-06-15T19:00:00",
     location: "Hôtel Ivoire, Abidjan",
+    category: "gala",
+    image: null,
+    is_featured: true,
   },
   {
     id: 2,
@@ -21,6 +26,9 @@ const DEMO_EVENTS = [
       "Football, basketball et athlétisme. Un moment de convivialité et de compétition amicale entre promotions.",
     date: "2026-07-20T08:00:00",
     location: "Stade du Lycée HB, Korhogo",
+    category: "sport",
+    image: null,
+    is_featured: true,
   },
   {
     id: 3,
@@ -29,6 +37,9 @@ const DEMO_EVENTS = [
       "Accompagnement des jeunes diplômés par les aînés. Ateliers CV, simulations d'entretien et networking.",
     date: "2026-08-10T09:00:00",
     location: "Salle de conférence, Plateau",
+    category: "forum",
+    image: null,
+    is_featured: true,
   },
 ];
 
@@ -43,6 +54,7 @@ function formatDate(dateStr: string) {
 export default function Events() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { data: events } = useApiList(() => api.getEvents("is_featured=true"), FALLBACK_EVENTS);
 
   return (
     <section id="events" className="py-14 lg:py-24 bg-gray-50 dark:bg-dark-card">
@@ -64,7 +76,7 @@ export default function Events() {
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {DEMO_EVENTS.map((event, i) => (
+          {events.map((event, i) => (
             <motion.div
               key={event.id}
               initial={{ y: 40, opacity: 0 }}

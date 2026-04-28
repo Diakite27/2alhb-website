@@ -19,92 +19,99 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import PageHeader from "@/components/PageHeader";
+import { api, JobOffer } from "@/lib/api";
+import { useApiList } from "@/lib/hooks";
 
-interface JobOffer {
-  id: number;
-  title: string;
-  company: string;
-  location: string;
-  type: "cdi" | "cdd" | "stage" | "freelance";
-  sector: string;
-  description: string;
-  postedAt: string;
-  postedBy: string;
-  applyUrl?: string;
-}
-
-const JOB_OFFERS: JobOffer[] = [
+const FALLBACK_JOBS: JobOffer[] = [
   {
     id: 1,
     title: "Ingénieur Développement Full Stack",
     company: "Tech Solutions CI",
     location: "Abidjan, Côte d'Ivoire",
-    type: "cdi",
+    job_type: "cdi",
     sector: "Informatique",
     description:
       "Nous recherchons un développeur Full Stack expérimenté pour rejoindre notre équipe produit. Stack : React, Node.js, PostgreSQL. Minimum 3 ans d'expérience.",
-    postedAt: "2026-04-20",
-    postedBy: "Kouadio Yao Marc — Promotion 1998",
+    apply_url: "",
+    posted_by_name: "Kouadio Yao Marc — Promotion 1998",
+    poster_email: "",
+    is_active: true,
+    created_at: "2026-04-20",
   },
   {
     id: 2,
     title: "Responsable Administratif et Financier",
     company: "Groupe SIFCA",
     location: "Abidjan, Côte d'Ivoire",
-    type: "cdi",
+    job_type: "cdi",
     sector: "Finance",
     description:
       "Poste de RAF pour superviser la comptabilité, le contrôle de gestion et la trésorerie. Profil BAC+5 en finance/comptabilité avec 5 ans d'expérience minimum.",
-    postedAt: "2026-04-18",
-    postedBy: "Traoré Aminata — Promotion 2005",
+    apply_url: "",
+    posted_by_name: "Traoré Aminata — Promotion 2005",
+    poster_email: "",
+    is_active: true,
+    created_at: "2026-04-18",
   },
   {
     id: 3,
     title: "Stage — Assistant Marketing Digital",
     company: "Orange CI",
     location: "Abidjan, Côte d'Ivoire",
-    type: "stage",
+    job_type: "stage",
     sector: "Marketing",
     description:
       "Stage de 6 mois au sein de l'équipe marketing digital. Gestion des réseaux sociaux, création de contenu et analyse de performance. Étudiant en marketing/communication.",
-    postedAt: "2026-04-15",
-    postedBy: "Bamba Seydou — Promotion 2010",
+    apply_url: "",
+    posted_by_name: "Bamba Seydou — Promotion 2010",
+    poster_email: "",
+    is_active: true,
+    created_at: "2026-04-15",
   },
   {
     id: 4,
     title: "Médecin Généraliste",
     company: "Clinique Sainte-Anne",
     location: "Korhogo, Côte d'Ivoire",
-    type: "cdi",
+    job_type: "cdi",
     sector: "Santé",
     description:
       "Recrutement d'un médecin généraliste pour renforcer l'équipe médicale. Doctorat en médecine requis, inscription à l'Ordre des médecins obligatoire.",
-    postedAt: "2026-04-12",
-    postedBy: "Dr. Coulibaly Fatou — Promotion 1995",
+    apply_url: "",
+    posted_by_name: "Dr. Coulibaly Fatou — Promotion 1995",
+    poster_email: "",
+    is_active: true,
+    created_at: "2026-04-12",
   },
   {
     id: 5,
     title: "Consultant Juridique",
     company: "Cabinet Koné & Associés",
     location: "Abidjan, Côte d'Ivoire",
-    type: "freelance",
+    job_type: "freelance",
     sector: "Droit",
     description:
       "Mission de conseil juridique en droit des affaires et droit OHADA. Profil avocat ou juriste avec 4 ans d'expérience minimum en cabinet.",
-    postedAt: "2026-04-10",
-    postedBy: "Me. Koné Ibrahim — Promotion 2000",
+    apply_url: "",
+    posted_by_name: "Me. Koné Ibrahim — Promotion 2000",
+    poster_email: "",
+    is_active: true,
+    created_at: "2026-04-10",
   },
   {
     id: 6,
     title: "Enseignant de Mathématiques",
     company: "Lycée HOUPHOUËT-BOIGNY de Korhogo",
     location: "Korhogo, Côte d'Ivoire",
-    type: "cdd",
+    job_type: "cdd",
     sector: "Éducation",
     description:
       "Le lycée recrute un enseignant de mathématiques pour l'année scolaire 2026-2027. Licence en mathématiques minimum, expérience pédagogique souhaitée.",
-    postedAt: "2026-04-08",
-    postedBy: "Bureau 2ALHB",
+    apply_url: "",
+    posted_by_name: "Bureau 2ALHB",
+    poster_email: "",
+    is_active: true,
+    created_at: "2026-04-08",
   },
 ];
 
@@ -136,7 +143,7 @@ function AnimSection({ children, className = "", delay = 0 }: { children: React.
 }
 
 function JobCard({ job }: { job: JobOffer }) {
-  const t = typeLabels[job.type];
+  const t = typeLabels[job.job_type] ?? { label: job.job_type, color: "bg-gray-500 text-white" };
   return (
     <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-6 hover:shadow-lg hover:border-orange/20 transition-all group">
       <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -171,16 +178,16 @@ function JobCard({ job }: { job: JobOffer }) {
         <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
           <span className="flex items-center gap-1">
             <CalendarDays size={12} />
-            {formatDate(job.postedAt)}
+            {formatDate(job.created_at)}
           </span>
           <span className="flex items-center gap-1">
             <Users size={12} />
-            {job.postedBy}
+            {job.posted_by_name}
           </span>
         </div>
-        {job.applyUrl ? (
+        {job.apply_url ? (
           <a
-            href={job.applyUrl}
+            href={job.apply_url}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-orange text-sm font-semibold hover:gap-2 transition-all"
@@ -204,7 +211,8 @@ export default function EmploisPage() {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success">("idle");
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [submitError, setSubmitError] = useState("");
   const [jobForm, setJobForm] = useState({
     title: "",
     company: "",
@@ -218,6 +226,8 @@ export default function EmploisPage() {
     applyUrl: "",
   });
 
+  const { data: jobs } = useApiList(() => api.getJobs(), FALLBACK_JOBS);
+
   const handleJobChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setJobForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -225,21 +235,36 @@ export default function EmploisPage() {
   const handleSubmitJob = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitStatus("loading");
-    // Simulated — will connect to DRF later
-    await new Promise((r) => setTimeout(r, 1500));
-    setSubmitStatus("success");
+    setSubmitError("");
+    try {
+      await api.createJob({
+        title: jobForm.title,
+        company: jobForm.company,
+        location: jobForm.location,
+        job_type: jobForm.type,
+        sector: jobForm.sector,
+        description: jobForm.description,
+        posted_by_name: `${jobForm.posterName} — Promotion ${jobForm.posterPromotion}`,
+        poster_email: jobForm.posterEmail,
+        apply_url: jobForm.applyUrl || undefined,
+      });
+      setSubmitStatus("success");
+    } catch {
+      setSubmitError("Une erreur est survenue lors de l'envoi. Veuillez réessayer.");
+      setSubmitStatus("error");
+    }
   };
 
   const inputClass =
     "w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-dark-border dark:bg-dark-card dark:text-gray-200 focus:border-orange focus:ring-2 focus:ring-orange/20 outline-none transition-all text-sm";
 
-  const filtered = JOB_OFFERS.filter((job) => {
+  const filtered = jobs.filter((job) => {
     const matchSearch =
       search === "" ||
       job.title.toLowerCase().includes(search.toLowerCase()) ||
       job.company.toLowerCase().includes(search.toLowerCase()) ||
       job.sector.toLowerCase().includes(search.toLowerCase());
-    const matchType = filterType === "all" || job.type === filterType;
+    const matchType = filterType === "all" || job.job_type === filterType;
     return matchSearch && matchType;
   });
 
@@ -331,6 +356,12 @@ export default function EmploisPage() {
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
                       Remplissez ce formulaire pour partager une opportunité avec la communauté.
                     </p>
+
+                    {submitStatus === "error" && submitError && (
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm mb-6">
+                        {submitError}
+                      </div>
+                    )}
 
                     <form onSubmit={handleSubmitJob} className="space-y-4">
                       <div className="grid sm:grid-cols-2 gap-4">

@@ -5,16 +5,43 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone, Send, Calendar, ArrowRight } from "lucide-react";
 import { SITE_FULL_NAME } from "@/lib/constants";
+import { api, AssociationInfo, Event } from "@/lib/api";
+import { useApiData, useApiList } from "@/lib/hooks";
 
-const recentEvents = [
-  { title: "Dîner Gala Annuel", date: "15 Juin 2026", href: "/evenements" },
-  { title: "Tournoi Inter-Promotions", date: "20 Juil. 2026", href: "/evenements" },
-  { title: "Forum Mentorat", date: "10 Août 2026", href: "/evenements" },
+const FALLBACK_INFO: AssociationInfo = {
+  name: "2ALHB",
+  full_name: "Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo",
+  slogan: "Connecter les anciens, inspirer les générations futures",
+  email: "contact@2alhb.ci",
+  phone: "+225 07 00 00 00 00",
+  address: "Lycée HOUPHOUËT-BOIGNY de Korhogo\nCôte d'Ivoire",
+  facebook_url: "https://facebook.com/2alhb",
+  linkedin_url: "https://linkedin.com/company/2alhb",
+  adhesion_fee: 5000,
+  monthly_fee: 5000,
+  annual_fee: 60000,
+};
+
+const FALLBACK_EVENTS: Event[] = [
+  { id: 1, title: "Dîner Gala Annuel", date: "2026-06-15T19:00:00", location: "Hôtel Ivoire, Abidjan", description: "", category: "gala", image: null, is_featured: true },
+  { id: 2, title: "Tournoi Inter-Promotions", date: "2026-07-20T08:00:00", location: "Stade du Lycée HB, Korhogo", description: "", category: "sport", image: null, is_featured: true },
+  { id: 3, title: "Forum Mentorat", date: "2026-08-10T09:00:00", location: "Salle de conférence, Plateau", description: "", category: "forum", image: null, is_featured: true },
 ];
+
+function formatEventDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const { data: info } = useApiData(() => api.getInfo(), FALLBACK_INFO);
+  const { data: allEvents } = useApiList(() => api.getEvents(), FALLBACK_EVENTS);
+  const recentEvents = allEvents.slice(0, 3);
 
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +114,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-3">
               <a
-                href="https://facebook.com/2alhb"
+                href={info.facebook_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-orange transition-colors"
@@ -96,7 +123,7 @@ export default function Footer() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               </a>
               <a
-                href="https://linkedin.com/company/2alhb"
+                href={info.linkedin_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-orange transition-colors"
@@ -105,7 +132,7 @@ export default function Footer() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
               </a>
               <a
-                href="mailto:contact@2alhb.ci"
+                href={`mailto:${info.email}`}
                 className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-orange transition-colors"
                 aria-label="Email"
               >
@@ -131,14 +158,14 @@ export default function Footer() {
             <h3 className="font-bold mb-4">Prochains événements</h3>
             <ul className="space-y-3">
               {recentEvents.map((event) => (
-                <li key={event.title}>
-                  <Link href={event.href} className="group flex items-start gap-3">
+                <li key={event.id}>
+                  <Link href="/evenements" className="group flex items-start gap-3">
                     <Calendar size={14} className="text-orange mt-0.5 shrink-0" />
                     <div>
                       <span className="text-sm text-white/70 group-hover:text-orange transition-colors block leading-tight">
                         {event.title}
                       </span>
-                      <span className="text-xs text-white/40">{event.date}</span>
+                      <span className="text-xs text-white/40">{formatEventDate(event.date)}</span>
                     </div>
                   </Link>
                 </li>
@@ -157,15 +184,17 @@ export default function Footer() {
             <ul className="space-y-3 text-white/50 text-sm">
               <li className="flex items-start gap-3">
                 <Mail size={14} className="text-orange mt-0.5 shrink-0" />
-                <span>contact@2alhb.ci</span>
+                <span>{info.email}</span>
               </li>
               <li className="flex items-start gap-3">
                 <Phone size={14} className="text-orange mt-0.5 shrink-0" />
-                <span>+225 07 00 00 00 00</span>
+                <span>{info.phone}</span>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={14} className="text-orange mt-0.5 shrink-0" />
-                <span>Lycée HOUPHOUËT-BOIGNY de Korhogo<br />Côte d&apos;Ivoire</span>
+                <span>{info.address.split("\n").map((line, i) => (
+                  <span key={i}>{line}{i === 0 && <br />}</span>
+                ))}</span>
               </li>
             </ul>
           </div>

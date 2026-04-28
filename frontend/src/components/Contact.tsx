@@ -3,12 +3,30 @@
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Send, Mail, MapPin, CheckCircle } from "lucide-react";
+import { api, AssociationInfo } from "@/lib/api";
+import { useApiData } from "@/lib/hooks";
+
+const FALLBACK_INFO: AssociationInfo = {
+  name: "2ALHB",
+  full_name: "Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo",
+  slogan: "Connecter les anciens, inspirer les générations futures",
+  email: "contact@2alhb.ci",
+  phone: "+225 07 00 00 00 00",
+  address: "Lycée HOUPHOUËT-BOIGNY de Korhogo\nCôte d'Ivoire",
+  facebook_url: "https://facebook.com/2alhb",
+  linkedin_url: "https://linkedin.com/company/2alhb",
+  adhesion_fee: 5000,
+  monthly_fee: 5000,
+  annual_fee: 60000,
+};
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { data: info } = useApiData(() => api.getInfo(), FALLBACK_INFO);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -17,19 +35,13 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
+    setErrorMsg("");
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/contact/`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        }
-      );
-      if (!res.ok) throw new Error();
+      await api.contact({ ...form });
       setStatus("success");
       setForm({ name: "", email: "", subject: "", message: "" });
     } catch {
+      setErrorMsg("Une erreur est survenue. Veuillez réessayer.");
       setStatus("error");
     }
   };
@@ -78,7 +90,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium text-green dark:text-green-light">contact@2alhb.ci</p>
+                  <p className="font-medium text-green dark:text-green-light">{info.email}</p>
                 </div>
               </div>
 
@@ -89,7 +101,7 @@ export default function Contact() {
                 <div>
                   <p className="text-sm text-gray-500">Adresse</p>
                   <p className="font-medium text-green dark:text-green-light">
-                    Lycée HOUPHOUËT-BOIGNY de Korhogo — Côte d&apos;Ivoire
+                    {info.address.replace(/\n/g, " — ")}
                   </p>
                 </div>
               </div>
@@ -110,6 +122,11 @@ export default function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                {status === "error" && errorMsg && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm">
+                    {errorMsg}
+                  </div>
+                )}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <input name="name" placeholder="Votre nom *" required value={form.name} onChange={handleChange} className={inputClass} />
                   <input name="email" type="email" placeholder="Votre email *" required value={form.email} onChange={handleChange} className={inputClass} />

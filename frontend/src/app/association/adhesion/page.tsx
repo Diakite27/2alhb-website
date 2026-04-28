@@ -6,6 +6,22 @@ import { UserPlus, CheckCircle, AlertCircle, Shield, Users, Briefcase, Heart } f
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import FAQ from "@/components/FAQ";
+import { api, AssociationInfo } from "@/lib/api";
+import { useApiData } from "@/lib/hooks";
+
+const FALLBACK_INFO: AssociationInfo = {
+  name: "2ALHB",
+  full_name: "Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo",
+  slogan: "Connecter les anciens, inspirer les générations futures",
+  email: "contact@2alhb.ci",
+  phone: "+225 07 00 00 00 00",
+  address: "Lycée HOUPHOUËT-BOIGNY de Korhogo\nCôte d'Ivoire",
+  facebook_url: "https://facebook.com/2alhb",
+  linkedin_url: "https://linkedin.com/company/2alhb",
+  adhesion_fee: 5000,
+  monthly_fee: 5000,
+  annual_fee: 60000,
+};
 
 interface FormData {
   first_name: string;
@@ -62,6 +78,7 @@ export default function AdhesionPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const { data: info } = useApiData(() => api.getInfo(), FALLBACK_INFO);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -110,18 +127,59 @@ export default function AdhesionPage() {
     if (errors.length > 0) {
       setErrorMsg(errors.join(" • "));
       setStatus("error");
-      // Scroll to top of form
       document.getElementById("adhesion-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
 
     setStatus("loading");
-    // Simulated — will connect to DRF later
-    await new Promise((r) => setTimeout(r, 1500));
-    setStatus("success");
-    setForm(initialForm);
-    setPhotoFile(null);
-    setPhotoPreview(null);
+    try {
+      if (photoFile) {
+        // Use FormData when there's a photo
+        const formData = new FormData();
+        formData.append("first_name", form.first_name);
+        formData.append("last_name", form.last_name);
+        formData.append("email", form.email);
+        formData.append("phone", form.phone);
+        formData.append("promotion", form.promotion);
+        formData.append("country", form.country);
+        formData.append("city", form.city);
+        formData.append("profession", form.profession);
+        formData.append("bio", form.bio);
+        formData.append("membership_type", form.membership_type);
+        formData.append("cotisation_mode", form.cotisation_mode);
+        formData.append("photo", photoFile);
+
+        const res = await api.register(formData);
+        if (res instanceof Response && !res.ok) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.detail || `Erreur ${res.status}`);
+        }
+      } else {
+        // JSON when no photo
+        await api.register({
+          first_name: form.first_name,
+          last_name: form.last_name,
+          email: form.email,
+          phone: form.phone,
+          promotion: form.promotion,
+          country: form.country,
+          city: form.city,
+          profession: form.profession,
+          bio: form.bio,
+          membership_type: form.membership_type,
+          cotisation_mode: form.cotisation_mode,
+        });
+      }
+      setStatus("success");
+      setForm(initialForm);
+      setPhotoFile(null);
+      setPhotoPreview(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Une erreur est survenue. Veuillez réessayer.";
+      setErrorMsg(message);
+      setStatus("error");
+      document.getElementById("adhesion-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   const inputClass =
@@ -240,7 +298,7 @@ export default function AdhesionPage() {
                             {form.membership_type === "simple" && <div className="w-2.5 h-2.5 rounded-full bg-orange" />}
                           </div>
                         </div>
-                        <p className="text-orange font-bold text-lg">5 000 FCFA</p>
+                        <p className="text-orange font-bold text-lg">{info.adhesion_fee.toLocaleString()} FCFA</p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">Droit d&apos;adhésion unique</p>
                       </button>
 
@@ -262,7 +320,7 @@ export default function AdhesionPage() {
                             {form.membership_type === "adherent" && <div className="w-2.5 h-2.5 rounded-full bg-orange" />}
                           </div>
                         </div>
-                        <p className="text-orange font-bold text-lg">5 000 FCFA <span className="text-xs font-normal text-gray-400">+ cotisation</span></p>
+                        <p className="text-orange font-bold text-lg">{info.adhesion_fee.toLocaleString()} FCFA <span className="text-xs font-normal text-gray-400">+ cotisation</span></p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">Adhésion + cotisation mensuelle ou annuelle</p>
                       </button>
                     </div>
@@ -275,7 +333,7 @@ export default function AdhesionPage() {
                       <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                         <li className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
-                          Droit d&apos;adhésion : <strong>5 000 FCFA</strong> (paiement unique)
+                          Droit d&apos;adhésion : <strong>{info.adhesion_fee.toLocaleString()} FCFA</strong> (paiement unique)
                         </li>
                         <li className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
@@ -294,7 +352,7 @@ export default function AdhesionPage() {
                         <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                           <li className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
-                            Droit d&apos;adhésion : <strong>5 000 FCFA</strong>
+                            Droit d&apos;adhésion : <strong>{info.adhesion_fee.toLocaleString()} FCFA</strong>
                           </li>
                           <li className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 bg-orange rounded-full shrink-0" />
@@ -324,7 +382,7 @@ export default function AdhesionPage() {
                                 : "border-gray-200 dark:border-dark-border hover:border-gray-300"
                             }`}
                           >
-                            <p className="font-bold text-green dark:text-green-light">5 000 FCFA</p>
+                            <p className="font-bold text-green dark:text-green-light">{info.monthly_fee.toLocaleString()} FCFA</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">/ mois</p>
                           </button>
                           <button
@@ -336,7 +394,7 @@ export default function AdhesionPage() {
                                 : "border-gray-200 dark:border-dark-border hover:border-gray-300"
                             }`}
                           >
-                            <p className="font-bold text-green dark:text-green-light">60 000 FCFA</p>
+                            <p className="font-bold text-green dark:text-green-light">{info.annual_fee.toLocaleString()} FCFA</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">/ an</p>
                           </button>
                         </div>
