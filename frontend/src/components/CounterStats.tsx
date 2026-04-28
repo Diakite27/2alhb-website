@@ -4,7 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Users, Globe, TrendingUp, GraduationCap } from "lucide-react";
 import { FALLBACK_STATS } from "@/lib/constants";
+import { api } from "@/lib/api";
 import type { SiteStats } from "@/lib/api";
+import { useApiData } from "@/lib/hooks";
 
 function useCounter(end: number, duration: number = 2000, start: boolean = false) {
   const [count, setCount] = useState(0);
@@ -74,16 +76,7 @@ function StatCard({
 export default function CounterStats() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [stats, setStats] = useState<SiteStats>(FALLBACK_STATS);
-
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/stats/`)
-      .then((r) => r.json())
-      .then((data) => setStats(data))
-      .catch(() => {
-        /* use fallback */
-      });
-  }, []);
+  const { data: stats } = useApiData(() => api.getStats(), FALLBACK_STATS);
 
   return (
     <div ref={ref} className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 max-w-4xl mx-auto">

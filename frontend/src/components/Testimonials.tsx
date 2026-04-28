@@ -3,26 +3,17 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Quote, ChevronLeft, ChevronRight, User } from "lucide-react";
-import { FALLBACK_TESTIMONIALS } from "@/lib/constants";
+import { api } from "@/lib/api";
 import type { Testimonial } from "@/lib/api";
+import { useApiList } from "@/lib/hooks";
+import { FALLBACK_TESTIMONIALS } from "@/lib/constants";
 
 export default function Testimonials() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(FALLBACK_TESTIMONIALS);
+  const { data: testimonials } = useApiList(() => api.getTestimonials(), FALLBACK_TESTIMONIALS as unknown as Testimonial[]);
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/testimonials/`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.results && data.results.length > 0) {
-          setTestimonials(data.results);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   const navigate = (dir: number) => {
     setDirection(dir);

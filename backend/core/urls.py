@@ -4,6 +4,9 @@ from . import views
 app_name = "core"
 
 urlpatterns = [
+    # Association info
+    path("info/", views.association_info, name="association-info"),
+
     # Promotions
     path("promotions/", views.PromotionListView.as_view(), name="promotion-list"),
     path("promotions/<int:year>/", views.PromotionDetailView.as_view(), name="promotion-detail"),
@@ -13,6 +16,9 @@ urlpatterns = [
     path("members/", views.MemberListView.as_view(), name="member-list"),
     path("members/register/", views.MemberRegistrationView.as_view(), name="member-register"),
     path("members/map/", views.members_per_country, name="members-map"),
+
+    # Bureau
+    path("bureau/", views.BureauMemberListView.as_view(), name="bureau-list"),
 
     # Testimonials
     path("testimonials/", views.TestimonialListView.as_view(), name="testimonial-list"),
@@ -30,6 +36,16 @@ urlpatterns = [
 
     # Gallery
     path("gallery/", views.GalleryListView.as_view(), name="gallery-list"),
+
+    # Job offers
+    path("jobs/", views.JobOfferListView.as_view(), name="job-list"),
+    path("jobs/create/", views.JobOfferCreateView.as_view(), name="job-create"),
+
+    # FAQ
+    path("faq/", views.FAQListView.as_view(), name="faq-list"),
+
+    # Activities / Plan
+    path("activities/", views.ActivityListView.as_view(), name="activity-list"),
 
     # Stats
     path("stats/", views.site_stats, name="site-stats"),

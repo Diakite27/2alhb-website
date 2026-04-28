@@ -1,20 +1,26 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
+import { api } from "@/lib/api";
+import type { Partner } from "@/lib/api";
+import { useApiList } from "@/lib/hooks";
 
-const partners = [
-  { name: "Lycée HOUPHOUËT-BOIGNY de Korhogo", logo: "/lhb.jpeg", url: "#" },
-  { name: "DRENA Korhogo", logo: "/drena.jpg", url: "#" },
+const FALLBACK_PARTNERS: Partner[] = [
+  { id: 1, name: "Lycée HOUPHOUËT-BOIGNY de Korhogo", logo: "/lhb.jpeg", website: "#" },
+  { id: 2, name: "DRENA Korhogo", logo: "/drena.jpg", website: "#" },
 ];
-
-// Duplicate for infinite scroll effect
-const marqueePartners = [...partners, ...partners, ...partners, ...partners];
 
 export default function Partners() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const { data: partners } = useApiList(() => api.getPartners(), FALLBACK_PARTNERS);
+
+  const marqueePartners = useMemo(
+    () => [...partners, ...partners, ...partners, ...partners],
+    [partners]
+  );
 
   return (
     <section className="py-16 lg:py-20 bg-white dark:bg-dark-bg overflow-hidden">
@@ -36,7 +42,6 @@ export default function Partners() {
         </motion.div>
       </div>
 
-      {/* Marquee infinite scroll */}
       <div className="relative">
         <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white dark:from-dark-bg to-transparent z-10" />
         <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white dark:from-dark-bg to-transparent z-10" />
@@ -49,7 +54,9 @@ export default function Partners() {
           {marqueePartners.map((partner, i) => (
             <a
               key={i}
-              href={partner.url}
+              href={partner.website || "#"}
+              target={partner.website ? "_blank" : undefined}
+              rel={partner.website ? "noopener noreferrer" : undefined}
               className="flex flex-col items-center gap-3 group shrink-0"
             >
               <div className="w-20 sm:w-28 h-20 sm:h-28 rounded-2xl bg-gray-50 dark:bg-dark-card border border-gray-100 dark:border-dark-border flex items-center justify-center p-2 sm:p-3 group-hover:border-orange/30 group-hover:shadow-lg transition-all duration-300">
@@ -59,6 +66,7 @@ export default function Partners() {
                   width={80}
                   height={80}
                   className="object-contain rounded-lg"
+                  unoptimized={partner.logo.startsWith("http")}
                 />
               </div>
               <span className="text-xs text-gray-400 font-medium text-center max-w-[120px] group-hover:text-orange transition-colors">

@@ -3,43 +3,17 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { ChevronDown, HelpCircle } from "lucide-react";
+import { api } from "@/lib/api";
+import type { FAQItem } from "@/lib/api";
+import { useApiList } from "@/lib/hooks";
 
-interface FAQItem {
-  question: string;
-  answer: string;
-}
-
-const faqs: FAQItem[] = [
-  {
-    question: "Qui peut adhérer à la 2ALHB ?",
-    answer:
-      "Tout ancien élève du Lycée HOUPHOUËT-BOIGNY de Korhogo, quelle que soit sa promotion ou son lieu de résidence actuel, peut demander à adhérer à l'amicale.",
-  },
-  {
-    question: "L'adhésion est-elle payante ?",
-    answer:
-      "L'inscription est gratuite. Une cotisation annuelle peut être demandée pour financer les activités de l'amicale. Le montant est fixé par l'Assemblée Générale.",
-  },
-  {
-    question: "Comment se déroule la validation ?",
-    answer:
-      "Après soumission du formulaire, le bureau exécutif examine votre demande. Vous recevez une confirmation par email sous 48h. En cas de besoin, le bureau peut vous contacter pour vérification.",
-  },
-  {
-    question: "Quels sont les avantages d'être membre ?",
-    answer:
-      "Accès à l'annuaire des anciens, invitations aux événements exclusifs, programmes de mentorat, partage d'opportunités professionnelles, et participation aux actions de solidarité envers le lycée.",
-  },
-  {
-    question: "Je suis à l'étranger, puis-je participer ?",
-    answer:
-      "Absolument ! La 2ALHB a des membres dans plusieurs pays. Vous pouvez participer aux événements en ligne, rejoindre les groupes de la diaspora et contribuer à distance aux projets de l'amicale.",
-  },
-  {
-    question: "Comment puis-je m'impliquer davantage ?",
-    answer:
-      "Vous pouvez rejoindre une commission (insertion, solidarité, communication, organisation), proposer des événements ou devenir mentor pour les jeunes diplômés. Contactez le bureau pour en savoir plus.",
-  },
+const FALLBACK_FAQ: FAQItem[] = [
+  { id: 1, question: "Qui peut adhérer à la 2ALHB ?", answer: "Tout ancien élève du Lycée HOUPHOUËT-BOIGNY de Korhogo, quelle que soit sa promotion ou son lieu de résidence actuel, peut demander à adhérer à l'amicale.", order: 0 },
+  { id: 2, question: "L'adhésion est-elle payante ?", answer: "Le droit d'adhésion est de 5 000 FCFA. Les membres adhérents paient en plus une cotisation mensuelle (5 000 FCFA) ou annuelle (60 000 FCFA).", order: 1 },
+  { id: 3, question: "Comment se déroule la validation ?", answer: "Après soumission du formulaire, le bureau exécutif examine votre demande. Vous recevez une confirmation par email sous 48h.", order: 2 },
+  { id: 4, question: "Quels sont les avantages d'être membre ?", answer: "Accès à l'annuaire des anciens, invitations aux événements exclusifs, programmes de mentorat, partage d'opportunités professionnelles.", order: 3 },
+  { id: 5, question: "Je suis à l'étranger, puis-je participer ?", answer: "Absolument ! La 2ALHB a des membres dans plusieurs pays. Vous pouvez participer aux événements en ligne et rejoindre les groupes de la diaspora.", order: 4 },
+  { id: 6, question: "Comment puis-je m'impliquer davantage ?", answer: "Vous pouvez rejoindre une commission, proposer des événements ou devenir mentor pour les jeunes diplômés. Contactez le bureau pour en savoir plus.", order: 5 },
 ];
 
 function FAQCard({ item, index }: { item: FAQItem; index: number }) {
@@ -103,6 +77,7 @@ function FAQCard({ item, index }: { item: FAQItem; index: number }) {
 export default function FAQ() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const { data: faqs } = useApiList(() => api.getFAQ(), FALLBACK_FAQ);
 
   return (
     <section className="py-16 bg-gray-50 dark:bg-dark-card">

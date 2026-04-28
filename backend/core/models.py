@@ -92,11 +92,22 @@ class Testimonial(models.Model):
 class Event(models.Model):
     """Événement organisé par l'amicale."""
 
+    CATEGORY_CHOICES = [
+        ("gala", "Gala"),
+        ("sport", "Sport"),
+        ("forum", "Forum"),
+        ("retrouvailles", "Retrouvailles"),
+        ("solidarite", "Solidarité"),
+        ("autre", "Autre"),
+    ]
+
     title = models.CharField("Titre", max_length=200)
     description = models.TextField("Description")
     date = models.DateTimeField("Date")
     location = models.CharField("Lieu", max_length=200)
+    category = models.CharField("Catégorie", max_length=20, choices=CATEGORY_CHOICES, default="autre")
     image = models.ImageField("Image", upload_to="events/", blank=True)
+    is_featured = models.BooleanField("Mis en avant", default=False)
     is_published = models.BooleanField("Publié", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -212,3 +223,159 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"{self.name} — {self.subject}"
+
+
+class BureauMember(models.Model):
+    """Membre du bureau exécutif."""
+
+    CATEGORY_CHOICES = [
+        ("direction", "Direction"),
+        ("commission", "Commission"),
+    ]
+
+    member = models.ForeignKey(
+        Member, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="bureau_roles", verbose_name="Membre"
+    )
+    name = models.CharField("Nom complet", max_length=200, help_text="Utilisé si pas lié à un membre")
+    role = models.CharField("Fonction", max_length=200)
+    category = models.CharField("Catégorie", max_length=20, choices=CATEGORY_CHOICES)
+    photo = models.ImageField("Photo", upload_to="bureau/", blank=True)
+    order = models.PositiveIntegerField("Ordre d'affichage", default=0)
+
+    class Meta:
+        verbose_name = "Membre du bureau"
+        verbose_name_plural = "Membres du bureau"
+        ordering = ["order"]
+
+    def __str__(self):
+        return f"{self.display_name} — {self.role}"
+
+    @property
+    def display_name(self):
+        if self.member:
+            return self.member.get_full_name()
+        return self.name
+
+    @property
+    def initials(self):
+        parts = self.display_name.split()
+        if len(parts) >= 2:
+            return f"{parts[0][0]}{parts[-1][0]}".upper()
+        return self.display_name[:2].upper()
+
+
+class JobOffer(models.Model):
+    """Offre d'emploi partagée par un membre."""
+
+    TYPE_CHOICES = [
+        ("cdi", "CDI"),
+        ("cdd", "CDD"),
+        ("stage", "Stage"),
+        ("freelance", "Freelance"),
+    ]
+
+    title = models.CharField("Intitulé du poste", max_length=200)
+    company = models.CharField("Entreprise", max_length=200)
+    location = models.CharField("Lieu", max_length=200)
+    job_type = models.CharField("Type de contrat", max_length=10, choices=TYPE_CHOICES)
+    sector = models.CharField("Secteur", max_length=100)
+    description = models.TextField("Description")
+    apply_url = models.URLField("Lien pour postuler", blank=True)
+    posted_by = models.ForeignKey(
+        Member, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="job_offers", verbose_name="Publié par"
+    )
+    poster_name = models.CharField("Nom du publieur", max_length=200, blank=True)
+    poster_email = models.EmailField("Email de contact", blank=True)
+    is_active = models.BooleanField("Active", default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Offre d'emploi"
+        verbose_name_plural = "Offres d'emploi"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} — {self.company}"
+
+
+class FAQ(models.Model):
+    """Question fréquente."""
+
+    question = models.CharField("Question", max_length=300)
+    answer = models.TextField("Réponse")
+    order = models.PositiveIntegerField("Ordre", default=0)
+    is_published = models.BooleanField("Publié", default=True)
+
+    class Meta:
+        verbose_name = "FAQ"
+        verbose_name_plural = "FAQ"
+        ordering = ["order"]
+
+    def __str__(self):
+        return self.question
+
+
+class Activity(models.Model):
+    """Activité du plan annuel."""
+
+    STATUS_CHOICES = [
+        ("done", "Réalisé"),
+        ("in-progress", "En cours"),
+        ("upcoming", "À venir"),
+    ]
+    QUARTER_CHOICES = [
+        ("Q1", "1er Trimestre"),
+        ("Q2", "2e Trimestre"),
+        ("Q3", "3e Trimestre"),
+        ("Q4", "4e Trimestre"),
+    ]
+
+    title = models.CharField("Titre", max_length=200)
+    description = models.TextField("Description")
+    quarter = models.CharField("Trimestre", max_length=2, choices=QUARTER_CHOICES)
+    year = models.PositiveIntegerField("Année", default=2026)
+    date_label = models.CharField("Date affichée", max_length=50, help_text="Ex: Janvier 2026")
+    status = models.CharField("Statut", max_length=15, choices=STATUS_CHOICES, default="upcoming")
+    order = models.PositiveIntegerField("Ordre", default=0)
+
+    class Meta:
+        verbose_name = "Activité"
+        verbose_name_plural = "Plan d'activités"
+        ordering = ["year", "quarter", "order"]
+
+    def __str__(self):
+        return f"[{self.quarter} {self.year}] {self.title}"
+
+
+class AssociationInfo(models.Model):
+    """Informations générales de l'association (singleton)."""
+
+    name = models.CharField("Nom", max_length=200, default="2ALHB")
+    full_name = models.CharField("Nom complet", max_length=300, default="Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo")
+    slogan = models.CharField("Slogan", max_length=300, default="Connecter les anciens, inspirer les générations futures")
+    email = models.EmailField("Email", default="contact@2alhb.ci")
+    phone = models.CharField("Téléphone", max_length=20, default="+225 07 00 00 00 00")
+    address = models.TextField("Adresse", default="Lycée HOUPHOUËT-BOIGNY de Korhogo\nCôte d'Ivoire")
+    facebook_url = models.URLField("Facebook", blank=True)
+    linkedin_url = models.URLField("LinkedIn", blank=True)
+    adhesion_fee = models.PositiveIntegerField("Droit d'adhésion (FCFA)", default=5000)
+    monthly_fee = models.PositiveIntegerField("Cotisation mensuelle (FCFA)", default=5000)
+    annual_fee = models.PositiveIntegerField("Cotisation annuelle (FCFA)", default=60000)
+
+    class Meta:
+        verbose_name = "Infos de l'association"
+        verbose_name_plural = "Infos de l'association"
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

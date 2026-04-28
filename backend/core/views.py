@@ -6,6 +6,7 @@ from django.db.models import Count, Q
 from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
     Partner, GalleryImage, SiteStats, ContactMessage,
+    BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
 )
 from .serializers import (
     PromotionSerializer, PromotionListSerializer,
@@ -13,13 +14,14 @@ from .serializers import (
     TestimonialSerializer, EventSerializer, NewsArticleSerializer,
     PartnerSerializer, GalleryImageSerializer, SiteStatsSerializer,
     ContactMessageSerializer, MembersPerCountrySerializer,
+    BureauMemberSerializer, JobOfferSerializer, JobOfferCreateSerializer,
+    FAQSerializer, ActivitySerializer, AssociationInfoSerializer,
 )
 
 
 # --- Promotions ---
 
 class PromotionListView(generics.ListAPIView):
-    """Liste des promotions avec nombre de membres."""
     serializer_class = PromotionListSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -33,7 +35,6 @@ class PromotionListView(generics.ListAPIView):
 
 
 class PromotionDetailView(generics.RetrieveAPIView):
-    """Détail d'une promotion avec ses membres."""
     serializer_class = PromotionSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = "year"
@@ -50,7 +51,6 @@ class PromotionDetailView(generics.RetrieveAPIView):
 # --- Members ---
 
 class MemberListView(generics.ListAPIView):
-    """Liste publique des membres approuvés."""
     serializer_class = MemberPublicSerializer
     filterset_fields = ["country", "promotion__year"]
     search_fields = ["first_name", "last_name", "profession", "company"]
@@ -62,38 +62,41 @@ class MemberListView(generics.ListAPIView):
 
 
 class MemberRegistrationView(generics.CreateAPIView):
-    """Inscription d'un nouveau membre."""
     serializer_class = MemberRegistrationSerializer
     permission_classes = [permissions.AllowAny]
 
 
-# --- Promotions stats ---
-
 @api_view(["GET"])
 @permission_classes([permissions.AllowAny])
 def members_per_promotion(request):
-    """Nombre de membres par promotion."""
     data = (
         Member.objects.filter(is_approved=True, is_active=True, promotion__isnull=False)
         .values("promotion__year", "promotion__name")
         .annotate(count=Count("id"))
         .order_by("-promotion__year")
     )
-    result = [
-        {
-            "year": item["promotion__year"],
-            "name": item["promotion__name"],
-            "count": item["count"],
-        }
+    return Response([
+        {"year": item["promotion__year"], "name": item["promotion__name"], "count": item["count"]}
         for item in data
-    ]
-    return Response(result)
+    ])
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def members_per_country(request):
+    data = (
+        Member.objects.filter(is_approved=True, is_active=True)
+        .values("country")
+        .annotate(count=Count("id"))
+        .order_by("-count")
+    )
+    serializer = MembersPerCountrySerializer(data, many=True)
+    return Response(serializer.data)
 
 
 # --- Testimonials ---
 
 class TestimonialListView(generics.ListAPIView):
-    """Témoignages mis en avant."""
     serializer_class = TestimonialSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -108,6 +111,7 @@ class TestimonialListView(generics.ListAPIView):
 class EventListView(generics.ListAPIView):
     serializer_class = EventSerializer
     permission_classes = [permissions.AllowAny]
+    filterset_fields = ["category", "is_featured"]
 
     def get_queryset(self):
         return Event.objects.filter(is_published=True)
@@ -166,23 +170,65 @@ def site_stats(request):
     return Response(serializer.data)
 
 
-# --- Map data ---
-
-@api_view(["GET"])
-@permission_classes([permissions.AllowAny])
-def members_per_country(request):
-    data = (
-        Member.objects.filter(is_approved=True, is_active=True)
-        .values("country")
-        .annotate(count=Count("id"))
-        .order_by("-count")
-    )
-    serializer = MembersPerCountrySerializer(data, many=True)
-    return Response(serializer.data)
-
-
 # --- Contact ---
 
 class ContactCreateView(generics.CreateAPIView):
     serializer_class = ContactMessageSerializer
     permission_classes = [permissions.AllowAny]
+
+
+# --- Bureau ---
+
+class BureauMemberListView(generics.ListAPIView):
+    serializer_class = BureauMemberSerializer
+    permission_classes = [permissions.AllowAny]
+    queryset = BureauMember.objects.select_related("member", "member__promotion").all()
+    filterset_fields = ["category"]
+
+
+# --- Job Offers ---
+
+class JobOfferListView(generics.ListAPIView):
+    serializer_class = JobOfferSerializer
+    permission_classes = [permissions.AllowAny]
+    filterset_fields = ["job_type", "sector"]
+    search_fields = ["title", "company", "sector", "description"]
+
+    def get_queryset(self):
+        return JobOffer.objects.filter(is_active=True).select_related("posted_by", "posted_by__promotion")
+
+
+class JobOfferCreateView(generics.CreateAPIView):
+    serializer_class = JobOfferCreateSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+# --- FAQ ---
+
+class FAQListView(generics.ListAPIView):
+    serializer_class = FAQSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return FAQ.objects.filter(is_published=True)
+
+
+# --- Activities ---
+
+class ActivityListView(generics.ListAPIView):
+    serializer_class = ActivitySerializer
+    permission_classes = [permissions.AllowAny]
+    filterset_fields = ["quarter", "year", "status"]
+
+    def get_queryset(self):
+        return Activity.objects.all()
+
+
+# --- Association Info ---
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def association_info(request):
+    info = AssociationInfo.load()
+    serializer = AssociationInfoSerializer(info)
+    return Response(serializer.data)
