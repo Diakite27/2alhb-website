@@ -301,3 +301,72 @@ export const galleryApi = {
   getAlbum: (id: number) => fetchAPI<GalleryAlbumDetail>(`/gallery/albums/${id}/`),
   getImages: () => fetchAPI<PaginatedResponse<{ id: number; title: string; image: string; caption: string; album: number | null; event: number | null; created_at: string }>>("/gallery/"),
 };
+
+
+// --- Member space types ---
+
+export interface MemberNotification {
+  id: number;
+  title: string;
+  message: string;
+  notification_type: string;
+  is_read: boolean;
+  link: string;
+  created_at: string;
+}
+
+export interface MemberDocumentItem {
+  id: number;
+  title: string;
+  category: string;
+  category_display: string;
+  file: string;
+  description: string;
+  is_adherent_only: boolean;
+  published_at: string;
+}
+
+export interface CotisationPaymentItem {
+  id: number;
+  amount: number;
+  period_label: string;
+  payment_method: string;
+  reference: string;
+  paid_at: string;
+}
+
+// --- Member space API ---
+
+export const memberApi = {
+  getNotifications: (token: string) =>
+    fetchAPI<PaginatedResponse<MemberNotification>>("/auth/notifications/", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  markRead: (token: string, id: number) =>
+    fetchAPI<{ detail: string }>(`/auth/notifications/${id}/read/`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  markAllRead: (token: string) =>
+    fetchAPI<{ detail: string }>("/auth/notifications/read-all/", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  getDocuments: (token: string) =>
+    fetchAPI<PaginatedResponse<MemberDocumentItem>>("/auth/documents/", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  getPayments: (token: string) =>
+    fetchAPI<PaginatedResponse<CotisationPaymentItem>>("/auth/payments/", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  getDirectory: (token: string, params?: string) =>
+    fetchAPI<PaginatedResponse<MemberPublic>>(`/auth/directory/${params ? `?${params}` : ""}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+};
