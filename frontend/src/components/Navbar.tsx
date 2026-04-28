@@ -126,6 +126,11 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const lastScrollY = useRef(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -223,7 +228,7 @@ export default function Navbar() {
                 <Moon size={18} className="text-foreground" />
               )}
             </button>
-            {user ? (
+            {mounted && user ? (
               <Link
                 href="/espace-membre"
                 className="bg-green text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-green-dark transition-all hover:shadow-lg flex items-center gap-2"
@@ -293,7 +298,7 @@ export default function Navbar() {
                   {theme === "dark" ? "Mode clair" : "Mode sombre"}
                 </button>
               </div>
-              {user ? (
+              {mounted && user ? (
                 <Link
                   href="/espace-membre"
                   onClick={() => setIsOpen(false)}

@@ -19,31 +19,31 @@ import PageHeader from "@/components/PageHeader";
 
 const timeline = [
   {
-    year: "2024",
-    title: "Naissance de la 2ALHB",
+    year: "2026",
+    title: "Fondation de la 2ALHB",
     description:
-      "Fondation officielle conformément à l'ordonnance n°2024-368. Un groupe d'anciens élèves passionnés décide de structurer les liens qui les unissent.",
+      "Assemblée Générale Constitutive le 20 avril 2026 à Korhogo. Adoption des statuts et élection du premier Bureau Exécutif.",
     color: "bg-orange",
   },
   {
-    year: "2024",
-    title: "Assemblée constitutive",
-    description:
-      "Adoption des statuts, du règlement intérieur et élection du premier bureau exécutif. La 2ALHB prend forme.",
-    color: "bg-green",
-  },
-  {
-    year: "2025",
+    year: "2026",
     title: "Premiers pas concrets",
     description:
       "Lancement des programmes de mentorat, premières retrouvailles inter-promotions et mise en place des commissions.",
-    color: "bg-orange",
+    color: "bg-green",
   },
   {
-    year: "2025",
+    year: "2026",
     title: "Le réseau grandit",
     description:
       "Développement des antennes à l'international, partenariats stratégiques et premières actions de solidarité envers le lycée.",
+    color: "bg-orange",
+  },
+  {
+    year: "2026",
+    title: "Cap sur l'avenir",
+    description:
+      "Renforcement du réseau professionnel, actions de soutien au lycée et développement des commissions thématiques.",
     color: "bg-green",
   },
 ];

@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<MemberProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   const logout = useCallback(() => {
     setUser(null);
@@ -64,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token, logout]);
 
   useEffect(() => {
+    setMounted(true);
     const savedToken = localStorage.getItem("2alhb-access");
     if (savedToken) {
       setToken(savedToken);
