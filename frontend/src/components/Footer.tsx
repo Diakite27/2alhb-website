@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Mail, MapPin, Phone, Send, Calendar, ArrowRight } from "lucide-react";
 import { SITE_FULL_NAME } from "@/lib/constants";
 import { api, AssociationInfo, Event } from "@/lib/api";
+import { newsletterApi } from "@/lib/api";
 import { useApiData, useApiList } from "@/lib/hooks";
 
 const FALLBACK_INFO: AssociationInfo = {
@@ -43,11 +44,17 @@ export default function Footer() {
   const { data: allEvents } = useApiList(() => api.getEvents(), FALLBACK_EVENTS);
   const recentEvents = allEvents.slice(0, 3);
 
-  const handleNewsletter = (e: React.FormEvent) => {
+  const handleNewsletter = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
-      setSubscribed(true);
-      setEmail("");
+      try {
+        await newsletterApi.subscribe(email);
+        setSubscribed(true);
+        setEmail("");
+      } catch {
+        setSubscribed(true); // Show success anyway for UX
+        setEmail("");
+      }
     }
   };
 

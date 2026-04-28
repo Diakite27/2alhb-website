@@ -166,6 +166,10 @@ class GalleryImage(models.Model):
     title = models.CharField("Titre", max_length=200, blank=True)
     image = models.ImageField("Image", upload_to="gallery/")
     caption = models.TextField("Légende", blank=True)
+    album = models.ForeignKey(
+        "GalleryAlbum", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="images", verbose_name="Album"
+    )
     event = models.ForeignKey(
         Event, on_delete=models.SET_NULL, null=True, blank=True,
         related_name="gallery_images", verbose_name="Événement"
@@ -379,3 +383,45 @@ class AssociationInfo(models.Model):
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class NewsletterSubscriber(models.Model):
+    """Abonné à la newsletter."""
+
+    email = models.EmailField("Email", unique=True)
+    is_active = models.BooleanField("Actif", default=True)
+    subscribed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Abonné newsletter"
+        verbose_name_plural = "Abonnés newsletter"
+        ordering = ["-subscribed_at"]
+
+    def __str__(self):
+        return self.email
+
+
+class GalleryAlbum(models.Model):
+    """Album photo pour regrouper les images."""
+
+    title = models.CharField("Titre", max_length=200)
+    description = models.TextField("Description", blank=True)
+    cover_image = models.ImageField("Image de couverture", upload_to="gallery/covers/", blank=True)
+    event = models.ForeignKey(
+        Event, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="albums", verbose_name="Événement lié"
+    )
+    is_published = models.BooleanField("Publié", default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Album"
+        verbose_name_plural = "Albums"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def photos_count(self):
+        return self.images.count()

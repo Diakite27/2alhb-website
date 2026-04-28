@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_FULL_NAME } from "@/lib/constants";
 import ThemeProvider from "@/components/ThemeProvider";
+import { AuthProvider } from "@/lib/auth";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -35,7 +36,9 @@ export default function RootLayout({
   return (
     <html lang="fr" className={poppins.variable} suppressHydrationWarning>
       <body className="min-h-screen antialiased font-sans">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

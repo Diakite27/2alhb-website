@@ -2,8 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
-    Partner, GalleryImage, SiteStats, ContactMessage,
+    Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
+    NewsletterSubscriber,
 )
 
 
@@ -118,3 +119,27 @@ class AssociationInfoAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(NewsletterSubscriber)
+class NewsletterSubscriberAdmin(admin.ModelAdmin):
+    list_display = ["email", "is_active", "subscribed_at"]
+    list_filter = ["is_active"]
+    search_fields = ["email"]
+
+
+class GalleryImageInline(admin.TabularInline):
+    model = GalleryImage
+    extra = 1
+    fields = ["title", "image", "caption"]
+
+
+@admin.register(GalleryAlbum)
+class GalleryAlbumAdmin(admin.ModelAdmin):
+    list_display = ["title", "event", "photos_count", "is_published", "created_at"]
+    list_filter = ["is_published"]
+    inlines = [GalleryImageInline]
+
+    def photos_count(self, obj):
+        return obj.images.count()
+    photos_count.short_description = "Photos"

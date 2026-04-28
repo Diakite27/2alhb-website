@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, Sun, Moon } from "lucide-react";
+import { Menu, X, ChevronDown, Sun, Moon, User } from "lucide-react";
 import { NAV_LINKS, SITE_NAME } from "@/lib/constants";
 import type { NavItem } from "@/lib/constants";
 import { useTheme } from "./ThemeProvider";
+import { useAuth } from "@/lib/auth";
 
 function DesktopDropdown({ item }: { item: NavItem }) {
   const [open, setOpen] = useState(false);
@@ -123,6 +124,7 @@ export default function Navbar() {
   const [hidden, setHidden] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -221,12 +223,22 @@ export default function Navbar() {
                 <Moon size={18} className="text-foreground" />
               )}
             </button>
-            <Link
-              href="#register"
-              className="bg-orange text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-orange-dark transition-all hover:shadow-lg hover:scale-105"
-            >
-              Rejoindre
-            </Link>
+            {user ? (
+              <Link
+                href="/espace-membre"
+                className="bg-green text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-green-dark transition-all hover:shadow-lg flex items-center gap-2"
+              >
+                <User size={16} />
+                {user.first_name}
+              </Link>
+            ) : (
+              <Link
+                href="/connexion"
+                className="bg-orange text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-orange-dark transition-all hover:shadow-lg hover:scale-105"
+              >
+                Connexion
+              </Link>
+            )}
           </div>
 
           {/* Mobile toggle */}
@@ -281,13 +293,23 @@ export default function Navbar() {
                   {theme === "dark" ? "Mode clair" : "Mode sombre"}
                 </button>
               </div>
-              <Link
-                href="#register"
-                onClick={() => setIsOpen(false)}
-                className="block bg-orange text-white text-center px-5 py-3 rounded-full font-semibold hover:bg-orange-dark transition-colors"
-              >
-                Rejoindre
-              </Link>
+              {user ? (
+                <Link
+                  href="/espace-membre"
+                  onClick={() => setIsOpen(false)}
+                  className="block bg-green text-white text-center px-5 py-3 rounded-full font-semibold hover:bg-green-dark transition-colors"
+                >
+                  Mon espace
+                </Link>
+              ) : (
+                <Link
+                  href="/connexion"
+                  onClick={() => setIsOpen(false)}
+                  className="block bg-orange text-white text-center px-5 py-3 rounded-full font-semibold hover:bg-orange-dark transition-colors"
+                >
+                  Connexion
+                </Link>
+              )}
             </div>
           </motion.div>
         )}

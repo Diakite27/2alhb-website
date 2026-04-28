@@ -5,17 +5,21 @@ from django.db.models import Count, Q
 
 from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
-    Partner, GalleryImage, SiteStats, ContactMessage,
+    Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
+    NewsletterSubscriber,
 )
 from .serializers import (
     PromotionSerializer, PromotionListSerializer,
     MemberPublicSerializer, MemberRegistrationSerializer,
+    MemberProfileSerializer, MemberProfileUpdateSerializer, ChangePasswordSerializer,
     TestimonialSerializer, EventSerializer, NewsArticleSerializer,
-    PartnerSerializer, GalleryImageSerializer, SiteStatsSerializer,
+    PartnerSerializer, GalleryImageSerializer, GalleryAlbumSerializer, GalleryAlbumDetailSerializer,
+    SiteStatsSerializer,
     ContactMessageSerializer, MembersPerCountrySerializer,
     BureauMemberSerializer, JobOfferSerializer, JobOfferCreateSerializer,
     FAQSerializer, ActivitySerializer, AssociationInfoSerializer,
+    NewsletterSubscribeSerializer,
 )
 
 
@@ -232,3 +236,75 @@ def association_info(request):
     info = AssociationInfo.load()
     serializer = AssociationInfoSerializer(info)
     return Response(serializer.data)
+
+
+# --- Auth / Profile ---
+
+class MemberProfileView(generics.RetrieveUpdateAPIView):
+    """Profil du membre connecté."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method in ("PUT", "PATCH"):
+            return MemberProfileUpdateSerializer
+        return MemberProfileSerializer
+
+    def get_object(self):
+        return self.request.user
+
+
+class ChangePasswordView(generics.GenericAPIView):
+    """Changer le mot de passe."""
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.set_password(serializer.validated_data["new_password"])
+        request.user.save()
+        return Response({"detail": "Mot de passe modifié avec succès."})
+
+
+# --- Newsletter ---
+
+class NewsletterSubscribeView(generics.CreateAPIView):
+    serializer_class = NewsletterSubscribeSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def newsletter_unsubscribe(request):
+    email = request.data.get("email")
+    if not email:
+        return Response({"detail": "Email requis."}, status=400)
+    try:
+        sub = NewsletterSubscriber.objects.get(email=email)
+        sub.is_active = False
+        sub.save()
+        return Response({"detail": "Désabonnement effectué."})
+    except NewsletterSubscriber.DoesNotExist:
+        return Response({"detail": "Email non trouvé."}, status=404)
+
+
+# --- Gallery Albums ---
+
+class GalleryAlbumListView(generics.ListAPIView):
+    serializer_class = GalleryAlbumSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return GalleryAlbum.objects.filter(is_published=True).annotate(
+            photos_count=Count("images")
+        )
+
+
+class GalleryAlbumDetailView(generics.RetrieveAPIView):
+    serializer_class = GalleryAlbumDetailSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return GalleryAlbum.objects.filter(is_published=True).annotate(
+            photos_count=Count("images")
+        ).prefetch_related("images")

@@ -7,6 +7,10 @@ urlpatterns = [
     # Association info
     path("info/", views.association_info, name="association-info"),
 
+    # Auth / Profile
+    path("auth/profile/", views.MemberProfileView.as_view(), name="member-profile"),
+    path("auth/change-password/", views.ChangePasswordView.as_view(), name="change-password"),
+
     # Promotions
     path("promotions/", views.PromotionListView.as_view(), name="promotion-list"),
     path("promotions/<int:year>/", views.PromotionDetailView.as_view(), name="promotion-detail"),
@@ -36,6 +40,8 @@ urlpatterns = [
 
     # Gallery
     path("gallery/", views.GalleryListView.as_view(), name="gallery-list"),
+    path("gallery/albums/", views.GalleryAlbumListView.as_view(), name="album-list"),
+    path("gallery/albums/<int:pk>/", views.GalleryAlbumDetailView.as_view(), name="album-detail"),
 
     # Job offers
     path("jobs/", views.JobOfferListView.as_view(), name="job-list"),
@@ -46,6 +52,10 @@ urlpatterns = [
 
     # Activities / Plan
     path("activities/", views.ActivityListView.as_view(), name="activity-list"),
+
+    # Newsletter
+    path("newsletter/subscribe/", views.NewsletterSubscribeView.as_view(), name="newsletter-subscribe"),
+    path("newsletter/unsubscribe/", views.newsletter_unsubscribe, name="newsletter-unsubscribe"),
 
     # Stats
     path("stats/", views.site_stats, name="site-stats"),

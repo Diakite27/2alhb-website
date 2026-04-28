@@ -203,3 +203,101 @@ export const api = {
   contact: (data: Record<string, unknown>) =>
     fetchAPI("/contact/", { method: "POST", body: JSON.stringify(data) }),
 };
+
+
+// --- Auth types ---
+
+export interface AuthTokens {
+  access: string;
+  refresh: string;
+}
+
+export interface MemberProfile {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  promotion: number | null;
+  promotion_year: number | null;
+  promotion_name: string;
+  membership_type: string;
+  cotisation_mode: string;
+  profession: string;
+  company: string;
+  city: string;
+  country: string;
+  bio: string;
+  photo: string | null;
+  linkedin: string;
+  is_approved: boolean;
+  created_at: string;
+}
+
+export interface GalleryAlbum {
+  id: number;
+  title: string;
+  description: string;
+  cover_image: string | null;
+  event: number | null;
+  photos_count: number;
+  created_at: string;
+}
+
+export interface GalleryAlbumDetail extends GalleryAlbum {
+  images: { id: number; title: string; image: string; caption: string }[];
+}
+
+// --- Auth API ---
+
+export const authApi = {
+  login: (username: string, password: string) =>
+    fetchAPI<AuthTokens>("/token/", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }),
+
+  refreshToken: (refresh: string) =>
+    fetchAPI<{ access: string }>("/token/refresh/", {
+      method: "POST",
+      body: JSON.stringify({ refresh }),
+    }),
+
+  getProfile: (token: string) =>
+    fetchAPI<MemberProfile>("/auth/profile/", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  updateProfile: (token: string, data: Record<string, unknown>) =>
+    fetchAPI<MemberProfile>("/auth/profile/", {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    }),
+
+  changePassword: (token: string, oldPassword: string, newPassword: string) =>
+    fetchAPI<{ detail: string }>("/auth/change-password/", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+    }),
+};
+
+// --- Newsletter ---
+
+export const newsletterApi = {
+  subscribe: (email: string) =>
+    fetchAPI("/newsletter/subscribe/", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+};
+
+// --- Gallery ---
+
+export const galleryApi = {
+  getAlbums: () => fetchAPI<PaginatedResponse<GalleryAlbum>>("/gallery/albums/"),
+  getAlbum: (id: number) => fetchAPI<GalleryAlbumDetail>(`/gallery/albums/${id}/`),
+  getImages: () => fetchAPI<PaginatedResponse<{ id: number; title: string; image: string; caption: string; album: number | null; event: number | null; created_at: string }>>("/gallery/"),
+};

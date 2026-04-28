@@ -2,8 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
-    Partner, GalleryImage, SiteStats, ContactMessage,
+    Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
+    NewsletterSubscriber,
 )
 
 
@@ -132,7 +133,7 @@ class PartnerSerializer(serializers.ModelSerializer):
 class GalleryImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryImage
-        fields = ["id", "title", "image", "caption", "event", "created_at"]
+        fields = ["id", "title", "image", "caption", "album", "event", "created_at"]
 
 
 # --- Stats ---
@@ -233,3 +234,95 @@ class AssociationInfoSerializer(serializers.ModelSerializer):
 class MembersPerCountrySerializer(serializers.Serializer):
     country = serializers.CharField()
     count = serializers.IntegerField()
+
+
+# --- Member Profile (authenticated) ---
+
+class MemberProfileSerializer(serializers.ModelSerializer):
+    promotion_year = serializers.SerializerMethodField()
+    promotion_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Member
+        fields = [
+            "id", "username", "email", "first_name", "last_name",
+            "phone", "promotion", "promotion_year", "promotion_name",
+            "membership_type", "cotisation_mode",
+            "profession", "company", "city", "country", "bio",
+            "photo", "linkedin", "is_approved", "created_at",
+        ]
+        read_only_fields = ["id", "username", "is_approved", "created_at"]
+
+    def get_promotion_year(self, obj):
+        return obj.promotion.year if obj.promotion else None
+
+    def get_promotion_name(self, obj):
+        return obj.promotion.name if obj.promotion else ""
+
+
+class MemberProfileUpdateSerializer(serializers.ModelSerializer):
+    promotion_year = serializers.IntegerField(write_only=True, required=False)
+
+    class Meta:
+        model = Member
+        fields = [
+            "first_name", "last_name", "phone", "promotion_year",
+            "profession", "company", "city", "country", "bio",
+            "photo", "linkedin",
+        ]
+
+    def update(self, instance, validated_data):
+        promotion_year = validated_data.pop("promotion_year", None)
+        if promotion_year:
+            from .models import Promotion
+            promo, _ = Promotion.objects.get_or_create(year=promotion_year)
+            instance.promotion = promo
+        return super().update(instance, validated_data)
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+
+    def validate_old_password(self, value):
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Mot de passe actuel incorrect.")
+        return value
+
+
+# --- Newsletter ---
+
+class NewsletterSubscribeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NewsletterSubscriber
+        fields = ["email"]
+
+    def create(self, validated_data):
+        subscriber, created = NewsletterSubscriber.objects.get_or_create(
+            email=validated_data["email"],
+            defaults={"is_active": True},
+        )
+        if not created and not subscriber.is_active:
+            subscriber.is_active = True
+            subscriber.save()
+        return subscriber
+
+
+# --- Gallery Album ---
+
+class GalleryAlbumSerializer(serializers.ModelSerializer):
+    photos_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = GalleryAlbum
+        fields = ["id", "title", "description", "cover_image", "event", "photos_count", "created_at"]
+
+
+class GalleryAlbumDetailSerializer(serializers.ModelSerializer):
+    images = GalleryImageSerializer(many=True, read_only=True)
+    photos_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = GalleryAlbum
+        fields = ["id", "title", "description", "cover_image", "event", "photos_count", "images", "created_at"]
