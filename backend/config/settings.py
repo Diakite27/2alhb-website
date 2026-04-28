@@ -17,6 +17,7 @@ DEBUG = os.getenv("DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 INSTALLED_APPS = [
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -114,4 +115,80 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
+
+
+# Jazzmin Admin Theme
+JAZZMIN_SETTINGS = {
+    "site_title": "2ALHB Admin",
+    "site_header": "2ALHB",
+    "site_brand": "2ALHB",
+    "welcome_sign": "Administration de la 2ALHB",
+    "copyright": "2ALHB — Amicale des Anciens du Lycée Houphouët-Boigny",
+    "search_model": ["core.Member"],
+    "topmenu_links": [
+        {"name": "Voir le site", "url": "http://localhost:3000", "new_window": True},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "icons": {
+        "auth.Group": "fas fa-users",
+        "core.Member": "fas fa-user-graduate",
+        "core.Promotion": "fas fa-graduation-cap",
+        "core.Testimonial": "fas fa-quote-left",
+        "core.Event": "fas fa-calendar-alt",
+        "core.NewsArticle": "fas fa-newspaper",
+        "core.Partner": "fas fa-handshake",
+        "core.GalleryAlbum": "fas fa-images",
+        "core.GalleryImage": "fas fa-image",
+        "core.SiteStats": "fas fa-chart-bar",
+        "core.ContactMessage": "fas fa-envelope",
+        "core.BureauMember": "fas fa-id-badge",
+        "core.JobOffer": "fas fa-briefcase",
+        "core.FAQ": "fas fa-question-circle",
+        "core.Activity": "fas fa-tasks",
+        "core.AssociationInfo": "fas fa-info-circle",
+        "core.NewsletterSubscriber": "fas fa-mail-bulk",
+        "core.MemberDocument": "fas fa-file-pdf",
+        "core.Notification": "fas fa-bell",
+        "core.CotisationPayment": "fas fa-money-bill-wave",
+    },
+    "default_icon_parents": "fas fa-folder",
+    "default_icon_children": "fas fa-circle",
+    "custom_css": None,
+    "custom_js": None,
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-success",
+    "accent": "accent-warning",
+    "navbar": "navbar-dark navbar-success",
+    "no_navbar_border": True,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-success",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
+    },
 }

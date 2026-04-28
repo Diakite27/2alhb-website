@@ -15,6 +15,7 @@ const FALLBACK_INFO: AssociationInfo = {
   address: "Lycée HOUPHOUËT-BOIGNY de Korhogo\nCôte d'Ivoire",
   facebook_url: "https://facebook.com/2alhb",
   linkedin_url: "https://linkedin.com/company/2alhb",
+  whatsapp: "+2250700000000",
   adhesion_fee: 5000,
   monthly_fee: 5000,
   annual_fee: 60000,

@@ -209,7 +209,7 @@ export default function StatutsPage() {
                 </div>
               </div>
               <a
-                href="/statuts-2alhb.pdf"
+                href="/documents/statuts-2alhb.pdf"
                 className="flex items-center gap-2 bg-orange text-white px-5 py-2.5 rounded-xl font-medium text-sm hover:bg-orange-dark transition-colors"
               >
                 <Download size={16} />

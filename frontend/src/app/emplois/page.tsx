@@ -15,12 +15,14 @@ import {
   CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import PageHeader from "@/components/PageHeader";
 import { api, JobOffer } from "@/lib/api";
 import { useApiList } from "@/lib/hooks";
+import { useAuth } from "@/lib/auth";
 
 const FALLBACK_JOBS: JobOffer[] = [
   {
@@ -227,6 +229,8 @@ export default function EmploisPage() {
   });
 
   const { data: jobs } = useApiList(() => api.getJobs(), FALLBACK_JOBS);
+  const { user, token } = useAuth();
+  const router = useRouter();
 
   const handleJobChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setJobForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -247,7 +251,7 @@ export default function EmploisPage() {
         posted_by_name: `${jobForm.posterName} — Promotion ${jobForm.posterPromotion}`,
         poster_email: jobForm.posterEmail,
         apply_url: jobForm.applyUrl || undefined,
-      });
+      }, token || undefined);
       setSubmitStatus("success");
     } catch {
       setSubmitError("Une erreur est survenue lors de l'envoi. Veuillez réessayer.");
@@ -454,7 +458,13 @@ export default function EmploisPage() {
                     Lycée HOUPHOUËT-BOIGNY de Korhogo. C&apos;est gratuit et réservé aux membres.
                   </p>
                   <button
-                    onClick={() => setShowForm(true)}
+                    onClick={() => {
+                      if (!user) {
+                        router.push("/connexion");
+                        return;
+                      }
+                      setShowForm(true);
+                    }}
                     className="bg-orange text-white px-8 py-4 rounded-full font-semibold hover:bg-orange-dark transition-all hover:scale-105 shadow-lg"
                   >
                     Publier une offre

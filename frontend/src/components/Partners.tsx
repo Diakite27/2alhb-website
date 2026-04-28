@@ -8,8 +8,8 @@ import type { Partner } from "@/lib/api";
 import { useApiList } from "@/lib/hooks";
 
 const FALLBACK_PARTNERS: Partner[] = [
-  { id: 1, name: "Lycée HOUPHOUËT-BOIGNY de Korhogo", logo: "/lhb.jpeg", website: "#" },
-  { id: 2, name: "DRENA Korhogo", logo: "/drena.jpg", website: "#" },
+  { id: 1, name: "Lycée HOUPHOUËT-BOIGNY de Korhogo", logo: "/images/lhb.jpeg", website: "#" },
+  { id: 2, name: "DRENA Korhogo", logo: "/images/drena.jpg", website: "#" },
 ];
 
 export default function Partners() {

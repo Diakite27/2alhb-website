@@ -224,7 +224,7 @@ class AssociationInfoSerializer(serializers.ModelSerializer):
         model = AssociationInfo
         fields = [
             "name", "full_name", "slogan", "email", "phone", "address",
-            "facebook_url", "linkedin_url",
+            "facebook_url", "linkedin_url", "whatsapp",
             "adhesion_fee", "monthly_fee", "annual_fee",
         ]
 
@@ -352,3 +352,11 @@ class CotisationPaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = CotisationPayment
         fields = ["id", "amount", "period_label", "payment_method", "reference", "paid_at"]
+
+
+# --- Testimonial Create (member) ---
+
+class TestimonialCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Testimonial
+        fields = ["content"]

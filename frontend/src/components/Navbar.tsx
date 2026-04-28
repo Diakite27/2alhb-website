@@ -177,7 +177,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
             <Image
-              src="/logo.png"
+              src="/images/logo.png"
               alt={SITE_NAME}
               width={56}
               height={56}

@@ -32,6 +32,7 @@ urlpatterns = [
 
     # Testimonials
     path("testimonials/", views.TestimonialListView.as_view(), name="testimonial-list"),
+    path("testimonials/create/", views.TestimonialCreateView.as_view(), name="testimonial-create"),
 
     # Events
     path("events/", views.EventListView.as_view(), name="event-list"),

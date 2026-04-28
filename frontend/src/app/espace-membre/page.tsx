@@ -6,7 +6,7 @@ import {
   User, Mail, Phone, MapPin, Briefcase, Building2,
   GraduationCap, Edit3, Save, LogOut, Shield, Calendar,
   Bell, FileText, CreditCard, Users, Search, Download,
-  CheckCircle, ExternalLink,
+  CheckCircle, ExternalLink, MessageSquare, Send,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -16,7 +16,7 @@ import { authApi, memberApi } from "@/lib/api";
 import type { MemberNotification, MemberDocumentItem, CotisationPaymentItem, MemberPublic } from "@/lib/api";
 import { formatPrice } from "@/lib/constants";
 
-type Tab = "profil" | "annuaire" | "notifications" | "documents" | "cotisations";
+type Tab = "profil" | "annuaire" | "notifications" | "documents" | "cotisations" | "temoignage";
 
 const tabs: { id: Tab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
   { id: "profil", label: "Profil", icon: User },
@@ -24,6 +24,7 @@ const tabs: { id: Tab; label: string; icon: React.ComponentType<{ size?: number;
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "cotisations", label: "Cotisations", icon: CreditCard },
+  { id: "temoignage", label: "Mon avis", icon: MessageSquare },
 ];
 
 export default function EspaceMembrePage() {
@@ -44,6 +45,10 @@ export default function EspaceMembrePage() {
   const [directory, setDirectory] = useState<MemberPublic[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
+  const [testimonialText, setTestimonialText] = useState("");
+  const [testimonialStatus, setTestimonialStatus] = useState<"idle" | "loading" | "success">("idle");
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) router.push("/connexion");
@@ -90,13 +95,36 @@ export default function EspaceMembrePage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePhoto(file);
+      setProfilePhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSave = async () => {
     if (!token) return;
     setSaving(true);
     try {
-      await authApi.updateProfile(token, form);
+      if (profilePhoto) {
+        // Upload with FormData for photo
+        const formData = new FormData();
+        Object.entries(form).forEach(([key, val]) => { if (val) formData.append(key, val); });
+        formData.append("photo", profilePhoto);
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+        await fetch(`${API_BASE}/auth/profile/`, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+      } else {
+        await authApi.updateProfile(token, form);
+      }
       await refreshProfile();
       setEditing(false);
+      setProfilePhoto(null);
+      setProfilePhotoPreview(null);
     } catch {} finally { setSaving(false); }
   };
 
@@ -112,6 +140,18 @@ export default function EspaceMembrePage() {
     await memberApi.markAllRead(token);
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     setUnreadCount(0);
+  };
+
+  const handleSubmitTestimonial = async () => {
+    if (!token || !testimonialText.trim()) return;
+    setTestimonialStatus("loading");
+    try {
+      await memberApi.submitTestimonial(token, testimonialText.trim());
+      setTestimonialStatus("success");
+      setTestimonialText("");
+    } catch {
+      setTestimonialStatus("idle");
+    }
   };
 
   if (isLoading || !user) {
@@ -208,6 +248,27 @@ export default function EspaceMembrePage() {
                       <div><label className="block text-xs font-medium text-gray-500 mb-1">Pays</label><input name="country" value={form.country} onChange={handleChange} className={inputClass} /></div>
                     </div>
                     <div><label className="block text-xs font-medium text-gray-500 mb-1">Bio</label><textarea name="bio" rows={3} value={form.bio} onChange={handleChange} className={`${inputClass} resize-none`} /></div>
+                    {/* Photo upload */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Photo de profil</label>
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-dark-border flex items-center justify-center overflow-hidden shrink-0">
+                          {profilePhotoPreview ? (
+                            <img src={profilePhotoPreview} alt="Aperçu" className="w-full h-full object-cover" />
+                          ) : user.photo ? (
+                            <img src={user.photo} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="text-gray-400" size={20} />
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePhotoChange}
+                          className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-orange/10 file:text-orange hover:file:bg-orange/20 file:cursor-pointer"
+                        />
+                      </div>
+                    </div>
                     <div className="flex gap-3">
                       <button onClick={handleSave} disabled={saving} className="bg-orange text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 disabled:opacity-60"><Save size={14} />{saving ? "..." : "Enregistrer"}</button>
                       <button onClick={() => setEditing(false)} className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-dark-border text-gray-500 text-sm">Annuler</button>
@@ -331,6 +392,41 @@ export default function EspaceMembrePage() {
                         <span className="font-bold text-orange text-sm">{formatPrice(p.amount)} FCFA</span>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "temoignage" && (
+              <div className="bg-white dark:bg-dark-card rounded-2xl p-6 sm:p-8 shadow-sm">
+                <h2 className="text-lg font-bold text-green dark:text-green-light mb-2">Partagez votre avis</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                  Votre témoignage pourra être publié sur le site après validation par le bureau.
+                </p>
+
+                {testimonialStatus === "success" ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="text-green mx-auto mb-3" size={40} />
+                    <p className="font-medium text-green dark:text-green-light">Merci pour votre témoignage !</p>
+                    <p className="text-sm text-gray-400 mt-1">Il sera publié après validation.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <textarea
+                      value={testimonialText}
+                      onChange={(e) => setTestimonialText(e.target.value)}
+                      rows={5}
+                      placeholder="Partagez votre expérience en tant qu'ancien élève du Lycée Houphouët-Boigny, ce que la 2ALHB vous apporte..."
+                      className={`${inputClass} resize-none`}
+                    />
+                    <button
+                      onClick={handleSubmitTestimonial}
+                      disabled={!testimonialText.trim() || testimonialStatus === "loading"}
+                      className="bg-orange text-white px-6 py-3 rounded-xl font-medium text-sm flex items-center gap-2 hover:bg-orange-dark transition-all disabled:opacity-50"
+                    >
+                      <Send size={16} />
+                      {testimonialStatus === "loading" ? "Envoi..." : "Envoyer mon témoignage"}
+                    </button>
                   </div>
                 )}
               </div>

@@ -27,6 +27,7 @@ export interface AssociationInfo {
   address: string;
   facebook_url: string;
   linkedin_url: string;
+  whatsapp: string;
   adhesion_fee: number;
   monthly_fee: number;
   annual_fee: number;
@@ -189,8 +190,12 @@ export const api = {
   // Jobs
   getJobs: (params?: string) =>
     fetchAPI<PaginatedResponse<JobOffer>>(`/jobs/${params ? `?${params}` : ""}`),
-  createJob: (data: Record<string, unknown>) =>
-    fetchAPI("/jobs/create/", { method: "POST", body: JSON.stringify(data) }),
+  createJob: (data: Record<string, unknown>, token?: string) =>
+    fetchAPI("/jobs/create/", {
+      method: "POST",
+      body: JSON.stringify(data),
+      ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+    }),
 
   // FAQ
   getFAQ: () => fetchAPI<PaginatedResponse<FAQItem>>("/faq/"),
@@ -368,5 +373,12 @@ export const memberApi = {
   getDirectory: (token: string, params?: string) =>
     fetchAPI<PaginatedResponse<MemberPublic>>(`/auth/directory/${params ? `?${params}` : ""}`, {
       headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  submitTestimonial: (token: string, content: string) =>
+    fetchAPI("/testimonials/create/", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ content }),
     }),
 };

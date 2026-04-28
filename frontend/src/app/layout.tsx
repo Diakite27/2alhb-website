@@ -18,6 +18,10 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
   keywords: [
     "2ALHB",
     "Lycée HOUPHOUËT-BOIGNY de Korhogo",

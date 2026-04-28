@@ -21,6 +21,7 @@ from .serializers import (
     FAQSerializer, ActivitySerializer, AssociationInfoSerializer,
     NewsletterSubscribeSerializer,
     MemberDocumentSerializer, NotificationSerializer, CotisationPaymentSerializer,
+    TestimonialCreateSerializer,
 )
 
 
@@ -205,7 +206,10 @@ class JobOfferListView(generics.ListAPIView):
 
 class JobOfferCreateView(generics.CreateAPIView):
     serializer_class = JobOfferCreateSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(posted_by=self.request.user)
 
 
 # --- FAQ ---
@@ -379,3 +383,14 @@ class MemberDirectoryView(generics.ListAPIView):
         return Member.objects.filter(
             is_approved=True, is_active=True
         ).select_related("promotion").exclude(pk=self.request.user.pk)
+
+
+# --- Testimonial Submit (member) ---
+
+class TestimonialCreateView(generics.CreateAPIView):
+    """Soumettre un témoignage (membre connecté)."""
+    serializer_class = TestimonialCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(member=self.request.user, is_featured=False)

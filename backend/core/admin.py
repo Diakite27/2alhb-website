@@ -7,6 +7,10 @@ from .models import (
     NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
 )
 
+admin.site.site_header = "Administration de 2ALHB"
+admin.site.site_title = "2ALHB Admin"
+admin.site.index_title = "Gestion du site"
+
 
 @admin.register(Promotion)
 class PromotionAdmin(admin.ModelAdmin):
@@ -24,6 +28,7 @@ class MemberAdmin(UserAdmin):
     list_display = ["username", "get_full_name", "promotion", "membership_type", "profession", "country", "is_approved"]
     list_filter = ["is_approved", "country", "promotion__year", "membership_type"]
     search_fields = ["first_name", "last_name", "email", "promotion__year"]
+    actions = ["send_cotisation_reminder"]
 
     add_fieldsets = (
         (None, {
@@ -47,6 +52,40 @@ class MemberAdmin(UserAdmin):
             ),
         }),
     )
+
+    @admin.action(description="📩 Envoyer un rappel de cotisation aux membres sélectionnés")
+    def send_cotisation_reminder(self, request, queryset):
+        from .models import Notification, CotisationPayment
+        import datetime
+
+        now = datetime.date.today()
+        count = 0
+
+        for member in queryset.filter(is_approved=True, membership_type="adherent"):
+            # Trouver le dernier paiement
+            last_payment = CotisationPayment.objects.filter(member=member).order_by("-paid_at").first()
+
+            if last_payment:
+                last_date = last_payment.paid_at
+                # Calculer les mois impayés depuis le dernier paiement
+                months_due = (now.year - last_date.year) * 12 + (now.month - last_date.month)
+                if months_due <= 0:
+                    continue  # À jour, pas de rappel
+                period = f"depuis {last_date.strftime('%B %Y').capitalize()} ({months_due} mois)"
+            else:
+                period = "aucun paiement enregistré"
+                months_due = "?"
+
+            Notification.objects.create(
+                recipient=member,
+                title=f"Rappel de cotisation",
+                message=f"Votre cotisation est en retard ({period}). Merci de régulariser votre situation dans les meilleurs délais.",
+                notification_type="cotisation",
+                link="/espace-membre",
+            )
+            count += 1
+
+        self.message_user(request, f"✅ Rappel envoyé à {count} membre(s) en retard de cotisation.")
 
 
 @admin.register(Testimonial)
@@ -170,6 +209,7 @@ class MemberDocumentAdmin(admin.ModelAdmin):
     list_display = ["title", "category", "is_adherent_only", "published_at"]
     list_filter = ["category", "is_adherent_only"]
     search_fields = ["title"]
+    date_hierarchy = "published_at"
 
 
 @admin.register(Notification)

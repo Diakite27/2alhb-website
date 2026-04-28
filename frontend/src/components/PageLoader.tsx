@@ -27,7 +27,7 @@ export default function PageLoader() {
             transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
           >
             <Image
-              src="/logo.png"
+              src="/images/logo.png"
               alt="2ALHB"
               width={100}
               height={100}

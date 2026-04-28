@@ -49,7 +49,7 @@ export default function ConnexionPage() {
           >
             <div className="text-center mb-8">
               <Image
-                src="/logo.png"
+                src="/images/logo.png"
                 alt="2ALHB"
                 width={60}
                 height={60}

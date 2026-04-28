@@ -364,6 +364,7 @@ class AssociationInfo(models.Model):
     address = models.TextField("Adresse", default="Lycée HOUPHOUËT-BOIGNY de Korhogo\nCôte d'Ivoire")
     facebook_url = models.URLField("Facebook", blank=True)
     linkedin_url = models.URLField("LinkedIn", blank=True)
+    whatsapp = models.CharField("WhatsApp", max_length=20, blank=True, help_text="Numéro avec indicatif, ex: +2250700000000")
     adhesion_fee = models.PositiveIntegerField("Droit d'adhésion (FCFA)", default=5000)
     monthly_fee = models.PositiveIntegerField("Cotisation mensuelle (FCFA)", default=5000)
     annual_fee = models.PositiveIntegerField("Cotisation annuelle (FCFA)", default=60000)
