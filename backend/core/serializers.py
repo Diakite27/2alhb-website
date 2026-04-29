@@ -147,10 +147,17 @@ class SiteStatsSerializer(serializers.ModelSerializer):
 # --- Contact ---
 
 class ContactMessageSerializer(serializers.ModelSerializer):
+    honeypot = serializers.CharField(required=False, allow_blank=True, write_only=True)
+
     class Meta:
         model = ContactMessage
-        fields = ["id", "name", "email", "subject", "message", "created_at"]
+        fields = ["id", "name", "email", "subject", "message", "honeypot", "created_at"]
         read_only_fields = ["id", "created_at"]
+
+    def validate_honeypot(self, value):
+        if value:
+            raise serializers.ValidationError("Spam detected.")
+        return value
 
 
 # --- Bureau ---
