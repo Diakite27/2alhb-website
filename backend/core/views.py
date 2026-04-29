@@ -1,7 +1,10 @@
 from rest_framework import generics, permissions, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from django.db.models import Count, Q
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 
 from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
@@ -67,9 +70,15 @@ class MemberListView(generics.ListAPIView):
         ).select_related("promotion")
 
 
+class RegistrationThrottle(AnonRateThrottle):
+    """Stricter rate limit for registration to prevent abuse."""
+    rate = "3/hour"
+
+
 class MemberRegistrationView(generics.CreateAPIView):
     serializer_class = MemberRegistrationSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [RegistrationThrottle]
 
 
 @api_view(["GET"])
@@ -178,9 +187,15 @@ def site_stats(request):
 
 # --- Contact ---
 
+class ContactThrottle(AnonRateThrottle):
+    """Stricter rate limit for contact form to prevent email bombing."""
+    rate = "5/hour"
+
+
 class ContactCreateView(generics.CreateAPIView):
     serializer_class = ContactMessageSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ContactThrottle]
 
 
 # --- Bureau ---
@@ -271,11 +286,32 @@ class ChangePasswordView(generics.GenericAPIView):
         return Response({"detail": "Mot de passe modifié avec succès."})
 
 
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def logout_view(request):
+    """Blacklist the refresh token on logout."""
+    refresh_token = request.data.get("refresh")
+    if not refresh_token:
+        return Response({"detail": "Refresh token requis."}, status=400)
+    try:
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return Response({"detail": "Déconnexion réussie."})
+    except TokenError:
+        return Response({"detail": "Token invalide ou déjà révoqué."}, status=400)
+
+
 # --- Newsletter ---
+
+class NewsletterThrottle(AnonRateThrottle):
+    """Stricter rate limit for newsletter subscription."""
+    rate = "5/hour"
+
 
 class NewsletterSubscribeView(generics.CreateAPIView):
     serializer_class = NewsletterSubscribeSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [NewsletterThrottle]
 
 
 @api_view(["POST"])

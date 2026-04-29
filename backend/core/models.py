@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models
+from django.db import models, transaction
 
 
 class Promotion(models.Model):
@@ -78,13 +78,16 @@ class Member(AbstractUser):
             self.member_number = self._generate_member_number()
         super().save(*args, **kwargs)
 
-    def _generate_member_number(self):
-        promo_year = self.promotion.year if self.promotion else "0000"
+    @staticmethod
+    def _generate_member_number_for_promo(promo_year):
+        """Generate a unique member number with row-level locking to prevent race conditions."""
         prefix = f"2ALHB-{promo_year}-"
-        # Find the highest existing number for this promo
-        existing = Member.objects.filter(
-            member_number__startswith=prefix
-        ).order_by("-member_number").first()
+        existing = (
+            Member.objects.select_for_update()
+            .filter(member_number__startswith=prefix)
+            .order_by("-member_number")
+            .first()
+        )
         if existing and existing.member_number:
             try:
                 last_num = int(existing.member_number.split("-")[-1])
@@ -93,6 +96,11 @@ class Member(AbstractUser):
         else:
             last_num = 0
         return f"{prefix}{str(last_num + 1).zfill(3)}"
+
+    def _generate_member_number(self):
+        promo_year = self.promotion.year if self.promotion else "0000"
+        with transaction.atomic():
+            return Member._generate_member_number_for_promo(promo_year)
 
 
 class Testimonial(models.Model):

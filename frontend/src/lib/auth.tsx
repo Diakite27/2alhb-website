@@ -31,12 +31,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Blacklist the refresh token server-side before clearing local state
+    const accessToken = token || localStorage.getItem("2alhb-access");
+    const refreshToken = localStorage.getItem("2alhb-refresh");
+    if (accessToken && refreshToken) {
+      try {
+        await authApi.logout(accessToken, refreshToken);
+      } catch {
+        // Best-effort: clear local state even if server call fails
+      }
+    }
     setUser(null);
     setToken(null);
     localStorage.removeItem("2alhb-access");
     localStorage.removeItem("2alhb-refresh");
-  }, []);
+  }, [token]);
 
   const refreshProfile = useCallback(async () => {
     const accessToken = token || localStorage.getItem("2alhb-access");

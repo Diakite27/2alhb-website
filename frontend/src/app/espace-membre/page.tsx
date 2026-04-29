@@ -99,6 +99,13 @@ export default function EspaceMembrePage() {
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        return; // Silently reject files over 2MB
+      }
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        return; // Silently reject non-image files
+      }
       setProfilePhoto(file);
       setProfilePhotoPreview(URL.createObjectURL(file));
     }
@@ -264,7 +271,7 @@ export default function EspaceMembrePage() {
                         </div>
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
                           onChange={handleProfilePhotoChange}
                           className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-orange/10 file:text-orange hover:file:bg-orange/20 file:cursor-pointer"
                         />

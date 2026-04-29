@@ -10,6 +10,7 @@ urlpatterns = [
     # Auth / Profile
     path("auth/profile/", views.MemberProfileView.as_view(), name="member-profile"),
     path("auth/change-password/", views.ChangePasswordView.as_view(), name="change-password"),
+    path("auth/logout/", views.logout_view, name="auth-logout"),
     path("auth/notifications/", views.NotificationListView.as_view(), name="notification-list"),
     path("auth/notifications/<int:pk>/read/", views.mark_notification_read, name="notification-read"),
     path("auth/notifications/read-all/", views.mark_all_notifications_read, name="notification-read-all"),

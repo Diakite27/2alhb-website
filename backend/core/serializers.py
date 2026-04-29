@@ -1,11 +1,31 @@
-from rest_framework import serializers
+import os
+
 from django.contrib.auth.password_validation import validate_password
+from django.core.validators import FileExtensionValidator
+from rest_framework import serializers
+
 from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
     Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
     NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
 )
+
+ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"]
+MAX_PHOTO_SIZE = 2 * 1024 * 1024  # 2 MB
+
+
+def validate_image_file(value):
+    """Validate uploaded image file type and size."""
+    if value.size > MAX_PHOTO_SIZE:
+        raise serializers.ValidationError(
+            f"La taille du fichier ne doit pas dépasser {MAX_PHOTO_SIZE // (1024 * 1024)} Mo."
+        )
+    ext = os.path.splitext(value.name)[1].lower().lstrip(".")
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        raise serializers.ValidationError(
+            f"Type de fichier non autorisé. Extensions acceptées : {', '.join(ALLOWED_IMAGE_EXTENSIONS)}."
+        )
 
 
 # --- Promotion ---
@@ -54,6 +74,7 @@ class MemberRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
     promotion_year = serializers.IntegerField(write_only=True, required=False)
+    photo = serializers.ImageField(required=False, validators=[validate_image_file])
 
     class Meta:
         model = Member
@@ -63,6 +84,13 @@ class MemberRegistrationSerializer(serializers.ModelSerializer):
             "membership_type", "cotisation_mode",
             "profession", "company", "city", "country", "bio", "photo", "linkedin",
         ]
+
+    def validate_membership_type(self, value):
+        """Only allow 'simple' or 'adherent' — prevent privilege escalation."""
+        allowed = ["simple", "adherent"]
+        if value not in allowed:
+            raise serializers.ValidationError("Type de membre invalide.")
+        return value
 
     def validate(self, attrs):
         if attrs["password"] != attrs.pop("password_confirm"):
@@ -74,7 +102,16 @@ class MemberRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop("password")
         promotion_year = validated_data.pop("promotion_year", None)
+
+        # Explicitly prevent mass-assignment of privileged fields
+        validated_data.pop("is_approved", None)
+        validated_data.pop("is_staff", None)
+        validated_data.pop("is_superuser", None)
+
         member = Member(**validated_data)
+        member.is_approved = False
+        member.is_staff = False
+        member.is_superuser = False
         member.set_password(password)
         if promotion_year:
             promo, _ = Promotion.objects.get_or_create(year=promotion_year)
@@ -269,6 +306,7 @@ class MemberProfileSerializer(serializers.ModelSerializer):
 
 class MemberProfileUpdateSerializer(serializers.ModelSerializer):
     promotion_year = serializers.IntegerField(write_only=True, required=False)
+    photo = serializers.ImageField(required=False, validators=[validate_image_file])
 
     class Meta:
         model = Member
@@ -277,8 +315,15 @@ class MemberProfileUpdateSerializer(serializers.ModelSerializer):
             "profession", "company", "city", "country", "bio",
             "photo", "linkedin",
         ]
+        # Explicitly exclude privileged fields — defense in depth
+        read_only_fields: list[str] = []
 
     def update(self, instance, validated_data):
+        # Strip any privileged fields that should never be user-editable
+        for field in ("is_approved", "is_staff", "is_superuser", "membership_type",
+                       "cotisation_mode", "is_active", "member_number"):
+            validated_data.pop(field, None)
+
         promotion_year = validated_data.pop("promotion_year", None)
         if promotion_year:
             from .models import Promotion

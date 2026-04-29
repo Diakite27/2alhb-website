@@ -90,6 +90,12 @@ export default function AdhesionPage() {
         setStatus("error");
         return;
       }
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        setErrorMsg("Type de fichier non autorisé. Utilisez JPG, PNG, GIF ou WebP.");
+        setStatus("error");
+        return;
+      }
       setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
     }
@@ -489,7 +495,7 @@ export default function AdhesionPage() {
                       <div className="flex-1">
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
                           onChange={handlePhotoChange}
                           className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-orange/10 file:text-orange hover:file:bg-orange/20 file:cursor-pointer"
                         />

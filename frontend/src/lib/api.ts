@@ -287,6 +287,13 @@ export const authApi = {
       headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
     }),
+
+  logout: (token: string, refresh: string) =>
+    fetchAPI<{ detail: string }>("/auth/logout/", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ refresh }),
+    }),
 };
 
 // --- Newsletter ---
