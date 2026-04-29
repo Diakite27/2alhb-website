@@ -25,10 +25,10 @@ class PromotionAdmin(admin.ModelAdmin):
 
 @admin.register(Member)
 class MemberAdmin(UserAdmin):
-    list_display = ["username", "get_full_name", "promotion", "membership_type", "profession", "country", "is_approved"]
+    list_display = ["member_number", "username", "get_full_name", "promotion", "membership_type", "profession", "country", "is_approved"]
     list_filter = ["is_approved", "country", "promotion__year", "membership_type"]
-    search_fields = ["first_name", "last_name", "email", "promotion__year"]
-    actions = ["send_cotisation_reminder"]
+    search_fields = ["first_name", "last_name", "email", "member_number", "promotion__year"]
+    actions = ["send_cotisation_reminder", "export_members_excel"]
 
     add_fieldsets = (
         (None, {
@@ -46,12 +46,13 @@ class MemberAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         ("Infos Alumni", {
             "fields": (
-                "phone", "promotion", "membership_type", "cotisation_mode",
+                "member_number", "phone", "promotion", "membership_type", "cotisation_mode",
                 "profession", "company", "city", "country", "bio", "photo",
                 "linkedin", "is_approved",
             ),
         }),
     )
+    readonly_fields = ["member_number"]
 
     @admin.action(description="📩 Envoyer un rappel de cotisation aux membres sélectionnés")
     def send_cotisation_reminder(self, request, queryset):
@@ -86,6 +87,58 @@ class MemberAdmin(UserAdmin):
             count += 1
 
         self.message_user(request, f"✅ Rappel envoyé à {count} membre(s) en retard de cotisation.")
+
+    @admin.action(description="📊 Exporter les membres sélectionnés en Excel")
+    def export_members_excel(self, request, queryset):
+        import openpyxl
+        from django.http import HttpResponse
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Membres 2ALHB"
+
+        # Header
+        headers = [
+            "N° Adhérent", "Nom", "Prénom", "Email", "Téléphone",
+            "Promotion", "Type", "Cotisation", "Profession",
+            "Entreprise", "Ville", "Pays", "Approuvé", "Date inscription",
+        ]
+        ws.append(headers)
+
+        # Style header
+        for cell in ws[1]:
+            cell.font = openpyxl.styles.Font(bold=True)
+
+        # Data
+        for member in queryset.select_related("promotion"):
+            ws.append([
+                member.member_number or "",
+                member.last_name,
+                member.first_name,
+                member.email,
+                member.phone,
+                str(member.promotion.year) if member.promotion else "",
+                member.get_membership_type_display(),
+                member.get_cotisation_mode_display() if member.cotisation_mode else "",
+                member.profession,
+                member.company,
+                member.city,
+                member.country,
+                "Oui" if member.is_approved else "Non",
+                member.created_at.strftime("%d/%m/%Y") if member.created_at else "",
+            ])
+
+        # Auto-width columns
+        for col in ws.columns:
+            max_length = max(len(str(cell.value or "")) for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = min(max_length + 2, 40)
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = 'attachment; filename="membres_2alhb.xlsx"'
+        wb.save(response)
+        return response
 
 
 @admin.register(Testimonial)

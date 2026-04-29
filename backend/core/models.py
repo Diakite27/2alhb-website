@@ -37,6 +37,10 @@ class Member(AbstractUser):
         ("annuelle", "Annuelle — 60 000 FCFA/an"),
     ]
 
+    member_number = models.CharField(
+        "Numéro d'adhérent", max_length=20, unique=True, blank=True, null=True,
+        help_text="Généré automatiquement : 2ALHB-PROMO-XXX"
+    )
     phone = models.CharField("Téléphone", max_length=20, blank=True)
     promotion = models.ForeignKey(
         Promotion, on_delete=models.SET_NULL, null=True, blank=True,
@@ -68,6 +72,27 @@ class Member(AbstractUser):
     def __str__(self):
         promo = self.promotion.year if self.promotion else "?"
         return f"{self.get_full_name()} ({promo})"
+
+    def save(self, *args, **kwargs):
+        if not self.member_number:
+            self.member_number = self._generate_member_number()
+        super().save(*args, **kwargs)
+
+    def _generate_member_number(self):
+        promo_year = self.promotion.year if self.promotion else "0000"
+        prefix = f"2ALHB-{promo_year}-"
+        # Find the highest existing number for this promo
+        existing = Member.objects.filter(
+            member_number__startswith=prefix
+        ).order_by("-member_number").first()
+        if existing and existing.member_number:
+            try:
+                last_num = int(existing.member_number.split("-")[-1])
+            except ValueError:
+                last_num = 0
+        else:
+            last_num = 0
+        return f"{prefix}{str(last_num + 1).zfill(3)}"
 
 
 class Testimonial(models.Model):
