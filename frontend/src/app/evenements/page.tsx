@@ -224,7 +224,6 @@ export default function EvenementsPage() {
   const { data: events } = useApiList(() => api.getEvents(), FALLBACK_EVENTS);
 
   const featured = events.filter((e) => e.is_featured);
-  const upcoming = events.filter((e) => !e.is_featured);
 
   return (
     <>

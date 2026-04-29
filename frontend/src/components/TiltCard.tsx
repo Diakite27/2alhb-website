@@ -15,6 +15,7 @@ export default function TiltCard({ children, className = "" }: TiltCardProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobile(window.matchMedia("(pointer: coarse)").matches);
   }, []);
 

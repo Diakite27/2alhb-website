@@ -5,7 +5,6 @@ import { motion, useInView } from "framer-motion";
 import {
   Briefcase,
   MapPin,
-  Clock,
   Building2,
   ExternalLink,
   Search,

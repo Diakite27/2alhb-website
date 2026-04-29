@@ -6,7 +6,7 @@ import {
   User, Mail, Phone, MapPin, Briefcase, Building2,
   GraduationCap, Edit3, Save, LogOut, Shield, Calendar,
   Bell, FileText, CreditCard, Users, Search, Download,
-  CheckCircle, ExternalLink, MessageSquare, Send,
+  CheckCircle, MessageSquare, Send,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -56,6 +56,7 @@ export default function EspaceMembrePage() {
 
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         first_name: user.first_name, last_name: user.last_name,
         phone: user.phone, profession: user.profession,

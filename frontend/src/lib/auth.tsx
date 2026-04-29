@@ -30,7 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<MemberProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
 
   const logout = useCallback(() => {
     setUser(null);
@@ -64,8 +63,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [token, logout]);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- intentional: syncing auth state from localStorage on mount */
   useEffect(() => {
-    setMounted(true);
     const savedToken = localStorage.getItem("2alhb-access");
     if (savedToken) {
       setToken(savedToken);
@@ -97,6 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const login = async (username: string, password: string) => {
     const tokens = await authApi.login(username, password);

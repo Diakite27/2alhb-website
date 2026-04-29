@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Camera, X, ChevronLeft, ChevronRight, Images } from "lucide-react";
-import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -92,18 +91,13 @@ export default function GaleriePage() {
   const [selectedAlbum, setSelectedAlbum] = useState<number | null>(null);
   const [albumImages, setAlbumImages] = useState<{ image: string; title: string; caption: string }[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [loadingAlbum, setLoadingAlbum] = useState(false);
-
   const openAlbum = async (albumId: number) => {
-    setLoadingAlbum(true);
     try {
       const detail = await galleryApi.getAlbum(albumId);
       setAlbumImages(detail.images);
       setSelectedAlbum(albumId);
     } catch {
       // fallback
-    } finally {
-      setLoadingAlbum(false);
     }
   };
 
