@@ -69,26 +69,37 @@ export default function EspaceMembrePage() {
   // Load data when tab changes
   useEffect(() => {
     if (!token) return;
-    if (activeTab === "notifications") {
+    let cancelled = false;
+    if (activeTab === "notifications" && notifications.length === 0) {
+      // Only fetch if not already loaded by mount effect
       memberApi.getNotifications(token).then((r) => {
-        setNotifications(r.results);
-        setUnreadCount(r.results.filter((n) => !n.is_read).length);
+        if (!cancelled) {
+          setNotifications(r.results);
+          setUnreadCount(r.results.filter((n) => !n.is_read).length);
+        }
       }).catch(() => {});
     } else if (activeTab === "documents") {
-      memberApi.getDocuments(token).then((r) => setDocuments(r.results)).catch(() => {});
+      memberApi.getDocuments(token).then((r) => { if (!cancelled) setDocuments(r.results); }).catch(() => {});
     } else if (activeTab === "cotisations") {
-      memberApi.getPayments(token).then((r) => setPayments(r.results)).catch(() => {});
+      memberApi.getPayments(token).then((r) => { if (!cancelled) setPayments(r.results); }).catch(() => {});
     } else if (activeTab === "annuaire") {
-      memberApi.getDirectory(token).then((r) => setDirectory(r.results)).catch(() => {});
+      memberApi.getDirectory(token).then((r) => { if (!cancelled) setDirectory(r.results); }).catch(() => {});
     }
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, token]);
 
   // Also load notification count on mount
   useEffect(() => {
     if (token) {
+      let cancelled = false;
       memberApi.getNotifications(token).then((r) => {
-        setUnreadCount(r.results.filter((n) => !n.is_read).length);
+        if (!cancelled) {
+          setNotifications(r.results);
+          setUnreadCount(r.results.filter((n) => !n.is_read).length);
+        }
       }).catch(() => {});
+      return () => { cancelled = true; };
     }
   }, [token]);
 
@@ -106,6 +117,8 @@ export default function EspaceMembrePage() {
       if (!allowedTypes.includes(file.type)) {
         return; // Silently reject non-image files
       }
+      // Revoke previous preview URL to prevent memory leak
+      if (profilePhotoPreview) URL.revokeObjectURL(profilePhotoPreview);
       setProfilePhoto(file);
       setProfilePhotoPreview(URL.createObjectURL(file));
     }
@@ -182,6 +195,11 @@ export default function EspaceMembrePage() {
     m.city.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Restrict tabs for non-approved members
+  const availableTabs = user.is_approved
+    ? tabs
+    : tabs.filter((t) => t.id === "profil" || t.id === "notifications");
+
   return (
     <>
       <Navbar />
@@ -208,9 +226,22 @@ export default function EspaceMembrePage() {
             </div>
           </motion.div>
 
+          {/* Pending approval banner */}
+          {!user.is_approved && (
+            <div className="bg-orange/10 border border-orange/30 rounded-2xl p-5 mb-6 flex items-start gap-3">
+              <Shield className="text-orange shrink-0 mt-0.5" size={20} />
+              <div>
+                <p className="font-semibold text-orange text-sm">Adhésion en attente de validation</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                  Votre demande est en cours d&apos;examen par le bureau. Vous aurez accès à l&apos;ensemble des fonctionnalités une fois votre adhésion approuvée.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Tabs */}
           <div className="flex gap-1 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-            {tabs.map((tab) => (
+            {availableTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}

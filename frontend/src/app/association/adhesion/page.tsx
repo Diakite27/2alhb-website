@@ -96,6 +96,8 @@ export default function AdhesionPage() {
         setStatus("error");
         return;
       }
+      // Revoke previous preview URL to prevent memory leak
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
       setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
     }
@@ -124,6 +126,14 @@ export default function AdhesionPage() {
     if (!form.country.trim()) errors.push("Le pays de résidence est requis");
     if (!form.city.trim()) errors.push("La ville est requise");
     if (!form.profession.trim()) errors.push("La profession est requise");
+
+    // Validate promotion is a valid year
+    if (form.promotion.trim()) {
+      const promoYear = parseInt(form.promotion, 10);
+      if (isNaN(promoYear) || promoYear < 1900 || promoYear > new Date().getFullYear() + 1) {
+        errors.push("La promotion doit être une année valide (ex: 1998)");
+      }
+    }
 
     if (form.membership_type === "adherent" && !form.cotisation_mode) {
       errors.push("Choisissez un mode de cotisation (mensuelle ou annuelle)");

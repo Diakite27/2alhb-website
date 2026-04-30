@@ -2,6 +2,7 @@ import os
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import FileExtensionValidator
+from django.db import IntegrityError
 from rest_framework import serializers
 
 from .models import (
@@ -82,6 +83,20 @@ class MemberRegistrationSerializer(serializers.ModelSerializer):
             "profession", "company", "city", "country", "bio", "photo", "linkedin",
         ]
 
+    def validate_email(self, value):
+        if Member.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Un compte avec cet email existe déjà.")
+        return value
+
+    def validate_promotion_year(self, value):
+        import datetime
+        current_year = datetime.date.today().year
+        if value < 1900 or value > current_year + 1:
+            raise serializers.ValidationError(
+                f"L'année de promotion doit être comprise entre 1900 et {current_year + 1}."
+            )
+        return value
+
     def validate_membership_type(self, value):
         allowed = ["simple", "adherent"]
         if value not in allowed:
@@ -127,7 +142,12 @@ class MemberRegistrationSerializer(serializers.ModelSerializer):
         if promotion_year:
             promo, _ = Promotion.objects.get_or_create(year=promotion_year)
             member.promotion = promo
-        member.save()
+        try:
+            member.save()
+        except IntegrityError:
+            raise serializers.ValidationError(
+                {"email": "Un compte avec cet email existe déjà."}
+            )
         return member
 
 
@@ -328,6 +348,15 @@ class MemberProfileUpdateSerializer(serializers.ModelSerializer):
         ]
         # Explicitly exclude privileged fields — defense in depth
         read_only_fields: list[str] = []
+
+    def validate_promotion_year(self, value):
+        import datetime
+        current_year = datetime.date.today().year
+        if value < 1900 or value > current_year + 1:
+            raise serializers.ValidationError(
+                f"L'année de promotion doit être comprise entre 1900 et {current_year + 1}."
+            )
+        return value
 
     def update(self, instance, validated_data):
         # Strip any privileged fields that should never be user-editable

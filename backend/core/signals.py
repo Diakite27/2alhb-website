@@ -26,10 +26,11 @@ def notify_new_event(sender, instance, created, **kwargs):
     """Notifie tous les membres approuvés quand un événement est publié."""
     if created and instance.is_published:
         members = Member.objects.filter(is_approved=True, is_active=True)
+        date_str = instance.date.strftime('%d/%m/%Y') if instance.date else "Date à confirmer"
         _bulk_notify(
             members,
             title=f"Nouvel événement : {instance.title}",
-            message=f"{instance.title} le {instance.date.strftime('%d/%m/%Y')} à {instance.location}.",
+            message=f"{instance.title} le {date_str} à {instance.location}.",
             notification_type="event",
             link="/evenements",
         )

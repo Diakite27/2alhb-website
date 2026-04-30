@@ -11,10 +11,28 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   });
 
   if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
+    // Try to extract validation error details from the response body
+    let detail = `API error: ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body.detail) {
+        detail = body.detail;
+      } else if (body.email) {
+        detail = Array.isArray(body.email) ? body.email[0] : body.email;
+      } else if (typeof body === "object") {
+        const messages = Object.values(body).flat();
+        if (messages.length > 0) detail = messages.join(" ");
+      }
+    } catch {
+      // Response body is not JSON, use status text
+    }
+    throw new Error(detail);
   }
 
-  return res.json();
+  // Handle empty responses (e.g., 204 No Content)
+  const text = await res.text();
+  if (!text) return {} as T;
+  return JSON.parse(text);
 }
 
 // Types

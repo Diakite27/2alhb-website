@@ -61,6 +61,7 @@ class PromotionDetailView(generics.RetrieveAPIView):
 
 class MemberListView(generics.ListAPIView):
     serializer_class = MemberPublicSerializer
+    permission_classes = [permissions.AllowAny]
     filterset_fields = ["country", "promotion__year"]
     search_fields = ["first_name", "last_name", "profession", "company"]
 
@@ -361,6 +362,9 @@ class MemberDocumentListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         qs = MemberDocument.objects.all()
+        # Non-approved members see no documents
+        if not user.is_approved:
+            return qs.none()
         # Adherent-only docs restricted
         if user.membership_type != "adherent":
             qs = qs.filter(is_adherent_only=False)

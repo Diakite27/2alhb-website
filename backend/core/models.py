@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models, transaction
+from django.db import models, transaction, connection
 
 
 class Promotion(models.Model):
@@ -82,12 +82,12 @@ class Member(AbstractUser):
     def _generate_member_number_for_promo(promo_year):
         """Generate a unique member number with row-level locking to prevent race conditions."""
         prefix = f"2ALHB-{promo_year}-"
-        existing = (
-            Member.objects.select_for_update()
-            .filter(member_number__startswith=prefix)
-            .order_by("-member_number")
-            .first()
-        )
+        qs = Member.objects.filter(member_number__startswith=prefix)
+        # select_for_update is silently ignored on SQLite; use it only on
+        # backends that support it so we still get locking on PostgreSQL.
+        if connection.vendor != "sqlite":
+            qs = qs.select_for_update()
+        existing = qs.order_by("-member_number").first()
         if existing and existing.member_number:
             try:
                 last_num = int(existing.member_number.split("-")[-1])
