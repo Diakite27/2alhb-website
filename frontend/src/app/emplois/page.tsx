@@ -247,7 +247,7 @@ export default function EmploisPage() {
         job_type: jobForm.type,
         sector: jobForm.sector,
         description: jobForm.description,
-        posted_by_name: `${jobForm.posterName} — Promotion ${jobForm.posterPromotion}`,
+        poster_name: `${jobForm.posterName} — Promotion ${jobForm.posterPromotion}`,
         poster_email: jobForm.posterEmail,
         apply_url: jobForm.applyUrl || undefined,
       }, token || undefined);

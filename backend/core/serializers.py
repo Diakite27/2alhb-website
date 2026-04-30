@@ -71,36 +71,29 @@ class MemberPublicSerializer(serializers.ModelSerializer):
 
 
 class MemberRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, validators=[validate_password])
-    password_confirm = serializers.CharField(write_only=True)
     promotion_year = serializers.IntegerField(write_only=True, required=False)
     photo = serializers.ImageField(required=False, validators=[validate_image_file])
 
     class Meta:
         model = Member
         fields = [
-            "username", "email", "password", "password_confirm",
-            "first_name", "last_name", "phone", "promotion_year",
+            "email", "first_name", "last_name", "phone", "promotion_year",
             "membership_type", "cotisation_mode",
             "profession", "company", "city", "country", "bio", "photo", "linkedin",
         ]
 
     def validate_membership_type(self, value):
-        """Only allow 'simple' or 'adherent' — prevent privilege escalation."""
         allowed = ["simple", "adherent"]
         if value not in allowed:
             raise serializers.ValidationError("Type de membre invalide.")
         return value
 
     def validate(self, attrs):
-        if attrs["password"] != attrs.pop("password_confirm"):
-            raise serializers.ValidationError({"password_confirm": "Les mots de passe ne correspondent pas."})
         if attrs.get("membership_type") == "adherent" and not attrs.get("cotisation_mode"):
             raise serializers.ValidationError({"cotisation_mode": "Le mode de cotisation est requis pour les membres adhérents."})
         return attrs
 
     def create(self, validated_data):
-        password = validated_data.pop("password")
         promotion_year = validated_data.pop("promotion_year", None)
 
         # Explicitly prevent mass-assignment of privileged fields
@@ -108,11 +101,29 @@ class MemberRegistrationSerializer(serializers.ModelSerializer):
         validated_data.pop("is_staff", None)
         validated_data.pop("is_superuser", None)
 
+        # Generate username from first_name + last_name
+        import re
+        import secrets
+        first = re.sub(r"[^a-z]", "", validated_data.get("first_name", "").lower().strip())
+        last = re.sub(r"[^a-z]", "", validated_data.get("last_name", "").lower().strip())
+        base_username = f"{first}.{last}" if first and last else f"membre{secrets.token_hex(3)}"
+
+        # Ensure uniqueness
+        username = base_username
+        counter = 1
+        while Member.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        # Generate default password
+        default_password = f"2ALHB-{secrets.token_hex(4)}"
+
         member = Member(**validated_data)
+        member.username = username
         member.is_approved = False
         member.is_staff = False
         member.is_superuser = False
-        member.set_password(password)
+        member.set_password(default_password)
         if promotion_year:
             promo, _ = Promotion.objects.get_or_create(year=promotion_year)
             member.promotion = promo

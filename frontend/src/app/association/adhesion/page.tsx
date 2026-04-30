@@ -148,7 +148,7 @@ export default function AdhesionPage() {
         formData.append("last_name", form.last_name);
         formData.append("email", form.email);
         formData.append("phone", form.phone);
-        formData.append("promotion", form.promotion);
+        formData.append("promotion_year", form.promotion);
         formData.append("country", form.country);
         formData.append("city", form.city);
         formData.append("profession", form.profession);
@@ -169,7 +169,7 @@ export default function AdhesionPage() {
           last_name: form.last_name,
           email: form.email,
           phone: form.phone,
-          promotion: form.promotion,
+          promotion_year: form.promotion,
           country: form.country,
           city: form.city,
           profession: form.profession,
