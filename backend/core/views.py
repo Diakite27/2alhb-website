@@ -72,7 +72,7 @@ class MemberListView(generics.ListAPIView):
 
 class RegistrationThrottle(AnonRateThrottle):
     """Stricter rate limit for registration to prevent abuse."""
-    rate = "3/hour"
+    rate = "10/hour"
 
 
 class MemberRegistrationView(generics.CreateAPIView):

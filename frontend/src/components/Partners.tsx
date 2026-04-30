@@ -65,7 +65,7 @@ export default function Partners() {
                   alt={partner.name}
                   width={80}
                   height={80}
-                  className="object-contain rounded-lg"
+                  className="object-contain rounded-lg w-auto h-auto"
                   unoptimized={partner.logo.startsWith("http")}
                 />
               </div>
