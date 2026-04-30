@@ -3,11 +3,12 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import TiltCard from "./TiltCard";
-import { api, Event } from "@/lib/api";
+import { api, Event as EventType } from "@/lib/api";
 import { useApiList } from "@/lib/hooks";
 
-const FALLBACK_EVENTS: Event[] = [
+const FALLBACK_EVENTS: EventType[] = [
   {
     id: 1,
     title: "Dîner Gala Annuel 2ALHB",
@@ -106,9 +107,9 @@ export default function Events() {
                     <span>{event.location}</span>
                   </div>
 
-                  <button className="flex items-center gap-2 text-orange font-semibold hover:gap-3 transition-all">
+                  <Link href={`/evenements/${event.id}`} className="flex items-center gap-2 text-orange font-semibold hover:gap-3 transition-all">
                     En savoir plus <ArrowRight size={16} />
-                  </button>
+                  </Link>
                 </div>
               </TiltCard>
             </motion.div>

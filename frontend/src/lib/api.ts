@@ -135,6 +135,19 @@ export interface JobOffer {
   description: string;
   apply_url: string;
   posted_by_name: string;
+  posted_by_info: {
+    id: number;
+    full_name: string;
+    profession: string;
+    company: string;
+    city: string;
+    country: string;
+    photo: string | null;
+    promotion_year: number | null;
+    email: string;
+    phone: string;
+    linkedin: string;
+  } | null;
   poster_email: string;
   is_active: boolean;
   created_at: string;
@@ -209,6 +222,10 @@ export const api = {
   // Jobs
   getJobs: (params?: string) =>
     fetchAPI<PaginatedResponse<JobOffer>>(`/jobs/${params ? `?${params}` : ""}`),
+  getJob: (id: number, token: string) =>
+    fetchAPI<JobOffer>(`/jobs/${id}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
   createJob: (data: Record<string, unknown>, token?: string) =>
     fetchAPI("/jobs/create/", {
       method: "POST",

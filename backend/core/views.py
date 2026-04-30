@@ -434,3 +434,11 @@ class TestimonialCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(member=self.request.user, is_featured=False)
+
+
+class JobOfferDetailView(generics.RetrieveAPIView):
+    serializer_class = JobOfferSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return JobOffer.objects.filter(is_active=True).select_related("posted_by", "posted_by__promotion")

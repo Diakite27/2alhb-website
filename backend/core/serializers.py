@@ -251,13 +251,14 @@ class BureauMemberSerializer(serializers.ModelSerializer):
 
 class JobOfferSerializer(serializers.ModelSerializer):
     posted_by_name = serializers.SerializerMethodField()
+    posted_by_info = serializers.SerializerMethodField()
 
     class Meta:
         model = JobOffer
         fields = [
             "id", "title", "company", "location", "job_type", "sector",
-            "description", "apply_url", "posted_by_name", "poster_email",
-            "is_active", "created_at",
+            "description", "apply_url", "posted_by_name", "posted_by_info",
+            "poster_email", "is_active", "created_at",
         ]
 
     def get_posted_by_name(self, obj):
@@ -265,6 +266,23 @@ class JobOfferSerializer(serializers.ModelSerializer):
             promo = obj.posted_by.promotion.year if obj.posted_by.promotion else ""
             return f"{obj.posted_by.get_full_name()} — Promotion {promo}"
         return obj.poster_name
+
+    def get_posted_by_info(self, obj):
+        if obj.posted_by:
+            return {
+                "id": obj.posted_by.id,
+                "full_name": obj.posted_by.get_full_name(),
+                "profession": obj.posted_by.profession,
+                "company": obj.posted_by.company,
+                "city": obj.posted_by.city,
+                "country": obj.posted_by.country,
+                "photo": obj.posted_by.photo.url if obj.posted_by.photo else None,
+                "promotion_year": obj.posted_by.promotion.year if obj.posted_by.promotion else None,
+                "email": obj.posted_by.email,
+                "phone": obj.posted_by.phone,
+                "linkedin": obj.posted_by.linkedin,
+            }
+        return None
 
 
 class JobOfferCreateSerializer(serializers.ModelSerializer):

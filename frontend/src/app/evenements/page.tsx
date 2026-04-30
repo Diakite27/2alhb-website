@@ -168,9 +168,9 @@ function FeaturedEvent({ event, index }: { event: Event; index: number }) {
             </div>
           </div>
 
-          <button className="flex items-center gap-2 text-orange font-semibold text-sm hover:gap-3 transition-all">
+          <Link href={`/evenements/${event.id}`} className="flex items-center gap-2 text-orange font-semibold text-sm hover:gap-3 transition-all">
             En savoir plus <ArrowRight size={16} />
-          </button>
+          </Link>
         </div>
       </div>
     </AnimSection>

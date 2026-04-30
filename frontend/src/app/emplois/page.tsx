@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 import {
   Briefcase,
@@ -12,6 +12,7 @@ import {
   CalendarDays,
   Users,
   CheckCircle,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,7 +35,7 @@ const FALLBACK_JOBS: JobOffer[] = [
     description:
       "Nous recherchons un développeur Full Stack expérimenté pour rejoindre notre équipe produit. Stack : React, Node.js, PostgreSQL. Minimum 3 ans d'expérience.",
     apply_url: "",
-    posted_by_name: "Kouadio Yao Marc — Promotion 1998",
+    posted_by_info: null, posted_by_name: "Kouadio Yao Marc — Promotion 1998",
     poster_email: "",
     is_active: true,
     created_at: "2026-04-20",
@@ -49,7 +50,7 @@ const FALLBACK_JOBS: JobOffer[] = [
     description:
       "Poste de RAF pour superviser la comptabilité, le contrôle de gestion et la trésorerie. Profil BAC+5 en finance/comptabilité avec 5 ans d'expérience minimum.",
     apply_url: "",
-    posted_by_name: "Traoré Aminata — Promotion 2005",
+    posted_by_info: null, posted_by_name: "Traoré Aminata — Promotion 2005",
     poster_email: "",
     is_active: true,
     created_at: "2026-04-18",
@@ -64,7 +65,7 @@ const FALLBACK_JOBS: JobOffer[] = [
     description:
       "Stage de 6 mois au sein de l'équipe marketing digital. Gestion des réseaux sociaux, création de contenu et analyse de performance. Étudiant en marketing/communication.",
     apply_url: "",
-    posted_by_name: "Bamba Seydou — Promotion 2010",
+    posted_by_info: null, posted_by_name: "Bamba Seydou — Promotion 2010",
     poster_email: "",
     is_active: true,
     created_at: "2026-04-15",
@@ -79,7 +80,7 @@ const FALLBACK_JOBS: JobOffer[] = [
     description:
       "Recrutement d'un médecin généraliste pour renforcer l'équipe médicale. Doctorat en médecine requis, inscription à l'Ordre des médecins obligatoire.",
     apply_url: "",
-    posted_by_name: "Dr. Coulibaly Fatou — Promotion 1995",
+    posted_by_info: null, posted_by_name: "Dr. Coulibaly Fatou — Promotion 1995",
     poster_email: "",
     is_active: true,
     created_at: "2026-04-12",
@@ -94,7 +95,7 @@ const FALLBACK_JOBS: JobOffer[] = [
     description:
       "Mission de conseil juridique en droit des affaires et droit OHADA. Profil avocat ou juriste avec 4 ans d'expérience minimum en cabinet.",
     apply_url: "",
-    posted_by_name: "Me. Koné Ibrahim — Promotion 2000",
+    posted_by_info: null, posted_by_name: "Me. Koné Ibrahim — Promotion 2000",
     poster_email: "",
     is_active: true,
     created_at: "2026-04-10",
@@ -109,7 +110,7 @@ const FALLBACK_JOBS: JobOffer[] = [
     description:
       "Le lycée recrute un enseignant de mathématiques pour l'année scolaire 2026-2027. Licence en mathématiques minimum, expérience pédagogique souhaitée.",
     apply_url: "",
-    posted_by_name: "Bureau 2ALHB",
+    posted_by_info: null, posted_by_name: "Bureau 2ALHB",
     poster_email: "",
     is_active: true,
     created_at: "2026-04-08",
@@ -154,10 +155,15 @@ function JobCard({ job }: { job: JobOffer }) {
         <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-dark-border px-2.5 py-1 rounded-full">
           {job.sector}
         </span>
+        <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
+          {formatDate(job.created_at)}
+        </span>
       </div>
 
       <h3 className="text-lg font-bold text-green dark:text-green-light mb-2 group-hover:text-orange transition-colors">
-        {job.title}
+        <Link href={`/emplois/${job.id}`} className="hover:underline">
+          {job.title}
+        </Link>
       </h3>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -175,33 +181,46 @@ function JobCard({ job }: { job: JobOffer }) {
         {job.description}
       </p>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 dark:border-dark-border">
-        <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
-          <span className="flex items-center gap-1">
-            <CalendarDays size={12} />
-            {formatDate(job.created_at)}
-          </span>
-          <span className="flex items-center gap-1">
-            <Users size={12} />
-            {job.posted_by_name}
-          </span>
+      {/* Publisher info */}
+      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-dark-bg rounded-xl mb-4">
+        <div className="w-8 h-8 bg-green/10 rounded-full flex items-center justify-center shrink-0">
+          <Users size={14} className="text-green" />
         </div>
-        {job.apply_url ? (
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-green dark:text-green-light truncate">
+            {job.posted_by_name || "Membre 2ALHB"}
+          </p>
+          <p className="text-[10px] text-gray-400">Référent de l&apos;offre</p>
+        </div>
+        {job.poster_email && (
+          <a
+            href={`mailto:${job.poster_email}`}
+            className="text-xs text-orange font-medium hover:underline shrink-0"
+          >
+            Contacter
+          </a>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-wrap gap-3">
+        {job.apply_url && (
           <a
             href={job.apply_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-orange text-sm font-semibold hover:gap-2 transition-all"
+            className="flex items-center gap-1.5 bg-orange text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-dark transition-all"
           >
             Postuler <ExternalLink size={14} />
           </a>
-        ) : (
-          <Link
-            href="/#contact"
-            className="flex items-center gap-1.5 text-orange text-sm font-semibold hover:gap-2 transition-all"
+        )}
+        {job.poster_email && (
+          <a
+            href={`mailto:${job.poster_email}?subject=Candidature : ${encodeURIComponent(job.title)}&body=${encodeURIComponent(`Bonjour,\n\nJe suis intéressé(e) par l'offre "${job.title}" chez ${job.company}.\n\nCordialement`)}`}
+            className="flex items-center gap-1.5 border border-orange text-orange px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange/5 transition-all"
           >
-            Contacter <ExternalLink size={14} />
-          </Link>
+            <Mail size={14} /> Envoyer un email
+          </a>
         )}
       </div>
     </div>
@@ -228,8 +247,27 @@ export default function EmploisPage() {
   });
 
   const { data: jobs } = useApiList(() => api.getJobs(), FALLBACK_JOBS);
-  const { user, token } = useAuth();
+  const { user, token, isLoading } = useAuth();
   const router = useRouter();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/connexion");
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading || !user) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-gray-50 dark:bg-dark-bg pt-28 flex items-center justify-center">
+          <p className="text-gray-400">Chargement...</p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   const handleJobChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setJobForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -247,7 +285,6 @@ export default function EmploisPage() {
         job_type: jobForm.type,
         sector: jobForm.sector,
         description: jobForm.description,
-        poster_name: `${jobForm.posterName} — Promotion ${jobForm.posterPromotion}`,
         poster_email: jobForm.posterEmail,
         apply_url: jobForm.applyUrl || undefined,
       }, token || undefined);
@@ -402,17 +439,6 @@ export default function EmploisPage() {
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email de contact *</label>
                           <input name="posterEmail" type="email" required value={jobForm.posterEmail} onChange={handleJobChange} className={inputClass} placeholder="votre@email.com" />
-                        </div>
-                      </div>
-
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Votre nom complet *</label>
-                          <input name="posterName" required value={jobForm.posterName} onChange={handleJobChange} className={inputClass} placeholder="Ex: Kouadio Yao Marc" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Votre promotion *</label>
-                          <input name="posterPromotion" required value={jobForm.posterPromotion} onChange={handleJobChange} className={inputClass} placeholder="Ex: 1998" pattern="\d{4}" title="Entrez l'année (4 chiffres)" />
                         </div>
                       </div>
 
