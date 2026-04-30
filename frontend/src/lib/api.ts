@@ -1,12 +1,13 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const { headers: optionHeaders, ...restOptions } = options || {};
   const res = await fetch(`${API_BASE}${endpoint}`, {
     headers: {
       "Content-Type": "application/json",
-      ...options?.headers,
+      ...(optionHeaders as Record<string, string>),
     },
-    ...options,
+    ...restOptions,
   });
 
   if (!res.ok) {

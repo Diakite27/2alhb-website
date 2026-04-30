@@ -154,7 +154,9 @@ export default function AdhesionPage() {
         formData.append("profession", form.profession);
         formData.append("bio", form.bio);
         formData.append("membership_type", form.membership_type);
-        formData.append("cotisation_mode", form.cotisation_mode);
+        if (form.membership_type === "adherent") {
+          formData.append("cotisation_mode", form.cotisation_mode);
+        }
         formData.append("photo", photoFile);
 
         const res = await api.register(formData);
@@ -175,7 +177,7 @@ export default function AdhesionPage() {
           profession: form.profession,
           bio: form.bio,
           membership_type: form.membership_type,
-          cotisation_mode: form.cotisation_mode,
+          ...(form.membership_type === "adherent" ? { cotisation_mode: form.cotisation_mode } : {}),
         });
       }
       setStatus("success");
