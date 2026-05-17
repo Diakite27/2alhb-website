@@ -1,20 +1,22 @@
 """
-Commande automatique de relance de cotisation.
+Commande automatique de relance de cotisation par notification + email.
 
 Usage:
     python manage.py send_cotisation_reminders
 
-Planifier via cron (ex: tous les 1er du mois à 8h) :
-    0 8 1 * * cd /path/to/backend && venv/bin/python manage.py send_cotisation_reminders
+Planifier via cron (les 5, 10 et 15 de chaque mois à 8h) :
+    0 8 5,10,15 * * cd /path/to/backend && venv/bin/python manage.py send_cotisation_reminders
 """
 
 import datetime
 from django.core.management.base import BaseCommand
+from django.core.mail import send_mail
+from django.conf import settings
 from core.models import Member, CotisationPayment, Notification
 
 
 class Command(BaseCommand):
-    help = "Envoie des rappels de cotisation aux membres adhérents en retard"
+    help = "Envoie des rappels de cotisation (notification + email) aux membres adhérents en retard"
 
     def handle(self, *args, **options):
         today = datetime.date.today()
@@ -44,9 +46,8 @@ class Command(BaseCommand):
 
             elif member.cotisation_mode == "annuelle":
                 if last_payment:
-                    # Rappel si le dernier paiement date de plus d'un an
                     days_since = (today - last_payment.paid_at).days
-                    if days_since >= 335:  # ~11 mois = rappel avant échéance
+                    if days_since >= 335:
                         should_remind = True
                         period_info = f"cotisation annuelle à renouveler (dernier paiement : {last_payment.paid_at.strftime('%d/%m/%Y')})"
                 else:
@@ -54,15 +55,16 @@ class Command(BaseCommand):
                     period_info = "aucun paiement annuel enregistré"
 
             if should_remind:
-                # Éviter les doublons : pas de rappel si un a été envoyé ce mois-ci
-                already_sent = Notification.objects.filter(
+                # Max 3 rappels par mois par membre
+                reminders_this_month = Notification.objects.filter(
                     recipient=member,
                     notification_type="cotisation",
                     created_at__year=today.year,
                     created_at__month=today.month,
-                ).exists()
+                ).count()
 
-                if not already_sent:
+                if reminders_this_month < 3:
+                    # Créer la notification
                     Notification.objects.create(
                         recipient=member,
                         title="Rappel de cotisation",
@@ -70,6 +72,28 @@ class Command(BaseCommand):
                         notification_type="cotisation",
                         link="/espace-membre",
                     )
+
+                    # Envoyer l'email
+                    if member.email:
+                        try:
+                            send_mail(
+                                subject="[2ALHB] Rappel de cotisation",
+                                message=(
+                                    f"Bonjour {member.first_name},\n\n"
+                                    f"Nous vous rappelons que votre cotisation est en retard ({period_info}).\n\n"
+                                    f"Merci de procéder au paiement dans les meilleurs délais "
+                                    f"par virement bancaire ou mobile money.\n\n"
+                                    f"Pour toute question, contactez le bureau.\n\n"
+                                    f"Fraternellement,\n"
+                                    f"Le Bureau de la 2ALHB"
+                                ),
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=[member.email],
+                                fail_silently=True,
+                            )
+                        except Exception as e:
+                            self.stderr.write(f"  ⚠ Email échoué pour {member.email}: {e}")
+
                     count += 1
 
-        self.stdout.write(self.style.SUCCESS(f"✅ {count} rappel(s) envoyé(s)"))
+        self.stdout.write(self.style.SUCCESS(f"✅ {count} rappel(s) envoyé(s) (notification + email)"))

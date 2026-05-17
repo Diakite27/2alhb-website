@@ -88,3 +88,6 @@ def notify_member_approved(sender, instance, **kwargs):
             notification_type="general",
             link="/espace-membre",
         )
+        # Send welcome email
+        from .emails import send_welcome_email
+        send_welcome_email(instance)
