@@ -81,6 +81,11 @@ def notify_member_approved(sender, instance, **kwargs):
 
     # Was not approved, now is approved
     if not old.is_approved and instance.is_approved:
+        # Generate a new temporary password to send to the member
+        import secrets
+        temp_password = f"2ALHB-{secrets.token_hex(4)}"
+        instance.set_password(temp_password)
+
         Notification.objects.create(
             recipient=instance,
             title="Bienvenue dans la 2ALHB !",
@@ -88,6 +93,6 @@ def notify_member_approved(sender, instance, **kwargs):
             notification_type="general",
             link="/espace-membre",
         )
-        # Send welcome email
+        # Send welcome email with credentials
         from .emails import send_welcome_email
-        send_welcome_email(instance)
+        send_welcome_email(instance, temp_password)

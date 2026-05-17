@@ -6,23 +6,36 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 
-def send_welcome_email(member):
+def send_welcome_email(member, password=None):
     """Envoie un email de bienvenue quand l'adhésion est approuvée."""
     if not member.email:
         return
+
+    credentials_block = ""
+    if password:
+        credentials_block = (
+            f"\nVos identifiants de connexion :\n"
+            f"  • Nom d'utilisateur : {member.username}\n"
+            f"  • Mot de passe : {password}\n\n"
+            f"⚠️ Nous vous recommandons de changer votre mot de passe "
+            f"dès votre première connexion.\n"
+        )
 
     send_mail(
         subject="[2ALHB] Bienvenue dans l'amicale !",
         message=(
             f"Bonjour {member.first_name},\n\n"
-            f"Votre adhésion à la 2ALHB a été approuvée par le bureau.\n\n"
-            f"Vous pouvez maintenant vous connecter à votre espace membre :\n"
-            f"- Nom d'utilisateur : {member.username}\n"
-            f"- Mot de passe : celui qui vous a été communiqué\n\n"
-            f"Connectez-vous sur le site pour accéder à l'annuaire, "
-            f"aux offres d'emploi, aux documents et bien plus.\n\n"
+            f"Votre adhésion à la 2ALHB a été approuvée par le bureau. "
+            f"Bienvenue dans la grande famille des anciens du Lycée Houphouët-Boigny de Korhogo !\n"
+            f"{credentials_block}\n"
+            f"Connectez-vous sur le site pour accéder à :\n"
+            f"  • L'annuaire des membres\n"
+            f"  • Les offres d'emploi\n"
+            f"  • Les documents de l'association\n"
+            f"  • Les notifications et événements\n\n"
             f"Fraternellement,\n"
-            f"Le Bureau de la 2ALHB"
+            f"Le Bureau de la 2ALHB\n"
+            f"Amicale des Anciens du Lycée Houphouët-Boigny de Korhogo"
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[member.email],
