@@ -60,8 +60,8 @@ export default function BureauPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimSection className="max-w-3xl mb-16">
             <p className="text-body text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
-              Élu par l&apos;Assemblée Générale, le Bureau Exécutif est composé de
-              5 membres élus pour un mandat de 3 ans renouvelable une fois. Il
+              Élu par l&apos;Assemblée Générale, le Bureau Exécutif est composé
+              de {direction.length}{" "}membres élus pour un mandat de 3 ans renouvelable une fois. Il
               assure la gestion de l&apos;amicale et coordonne l&apos;ensemble des
               activités.
             </p>
@@ -94,32 +94,7 @@ export default function BureauPage() {
             </div>
           </AnimSection>
 
-          {/* Commissions Thématiques */}
-          <AnimSection>
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-1.5 h-8 bg-green rounded-full" />
-              <h2 className="text-2xl font-bold text-green dark:text-green-light">Les Commissions Thématiques</h2>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {commissions.map((commission, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-4 p-5 rounded-2xl bg-gray-50 dark:bg-dark-card hover:bg-green/5 dark:hover:bg-green/10 transition-all group cursor-default"
-                >
-                  <div className="w-14 h-14 bg-gradient-to-br from-orange/80 to-orange rounded-xl flex items-center justify-center shrink-0 group-hover:from-green group-hover:to-green-light transition-all">
-                    <Users className="text-white" size={20} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-green dark:text-green-light group-hover:text-orange transition-colors text-sm">
-                      {commission.name}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Président à nommer</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </AnimSection>
+          {/* Commissions Thématiques — masqué pour le moment */}
         </div>
       </section>
 

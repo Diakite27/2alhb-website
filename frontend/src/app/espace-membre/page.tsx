@@ -49,6 +49,10 @@ export default function EspaceMembrePage() {
   const [testimonialStatus, setTestimonialStatus] = useState<"idle" | "loading" | "success">("idle");
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordStatus, setPasswordStatus] = useState<"idle" | "success">("idle");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     if (!isLoading && !user) router.push("/connexion");
@@ -175,6 +179,19 @@ export default function EspaceMembrePage() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!token) return;
+    setPasswordError("");
+    try {
+      await authApi.changePassword(token, oldPassword, newPassword);
+      setPasswordStatus("success");
+      setOldPassword("");
+      setNewPassword("");
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : "Erreur lors du changement de mot de passe");
+    }
+  };
+
   if (isLoading || !user) {
     return (
       <>
@@ -263,6 +280,7 @@ export default function EspaceMembrePage() {
           {/* Tab content */}
           <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             {activeTab === "profil" && (
+              <>
               <div className="bg-white dark:bg-dark-card rounded-2xl p-6 sm:p-8 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-bold text-green dark:text-green-light">{editing ? "Modifier le profil" : "Informations personnelles"}</h2>
@@ -326,6 +344,38 @@ export default function EspaceMembrePage() {
                   </div>
                 )}
               </div>
+
+              {/* Change password */}
+              <div className="bg-white dark:bg-dark-card rounded-2xl p-6 sm:p-8 shadow-sm mt-6">
+                <h2 className="text-lg font-bold text-green dark:text-green-light mb-4">Changer le mot de passe</h2>
+                {passwordStatus === "success" ? (
+                  <div className="flex items-center gap-2 text-green dark:text-green-light text-sm">
+                    <CheckCircle size={16} /> Mot de passe modifié avec succès
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {passwordError && (
+                      <p className="text-red-500 text-sm">{passwordError}</p>
+                    )}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Mot de passe actuel</label>
+                      <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Nouveau mot de passe (8 caractères min.)</label>
+                      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} />
+                    </div>
+                    <button
+                      onClick={handleChangePassword}
+                      disabled={!oldPassword || !newPassword || newPassword.length < 8}
+                      className="bg-orange text-white px-5 py-2.5 rounded-xl font-medium text-sm disabled:opacity-50"
+                    >
+                      Modifier le mot de passe
+                    </button>
+                  </div>
+                )}
+              </div>
+              </>
             )}
 
             {activeTab === "annuaire" && (

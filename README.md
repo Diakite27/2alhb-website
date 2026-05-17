@@ -132,15 +132,77 @@ Le site est accessible sur `http://localhost:3000`, l'API sur `http://localhost:
 
 ## Déploiement (production)
 
-Variables d'environnement à configurer :
+### Variables d'environnement backend (`.env`)
 
 ```env
-SECRET_KEY=<clé-aléatoire-50-caractères>
+# Django
+SECRET_KEY=<clé-aléatoire-50-caractères-minimum>
 DEBUG=False
-ALLOWED_HOSTS=2alhb.ci,www.2alhb.ci
-CORS_ALLOWED_ORIGINS=https://2alhb.ci
+ALLOWED_HOSTS=api.2alhb.ci,2alhb.ci
+
+# Base de données
 DATABASE_URL=postgres://user:password@host:5432/alhb_db
+
+# CORS
+CORS_ALLOWED_ORIGINS=https://2alhb.ci,https://www.2alhb.ci
+
+# Email (SMTP)
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=contact@2alhb.ci
+EMAIL_HOST_PASSWORD=<mot-de-passe-application>
+DEFAULT_FROM_EMAIL=2ALHB <contact@2alhb.ci>
 ```
+
+### Variables d'environnement frontend (`.env.local`)
+
+```env
+NEXT_PUBLIC_API_URL=https://api.2alhb.ci/api
+```
+
+### Restauration de la base de données
+
+```bash
+createdb -U user alhb_db
+psql -U user -d alhb_db < backend/dump_prod.sql
+python manage.py changepassword admin
+```
+
+### Tâche planifiée (cron)
+
+```bash
+# Rappels de cotisation — les 5, 10 et 15 de chaque mois à 8h
+0 8 5,10,15 * * cd /path/to/backend && venv/bin/python manage.py send_cotisation_reminders
+```
+
+### Commandes utiles
+
+```bash
+# Collecter les fichiers statiques
+python manage.py collectstatic --noinput
+
+# Créer un superuser
+python manage.py createsuperuser
+
+# Seed initial (si pas de dump)
+python manage.py shell < seed_data.py
+```
+
+### Checklist déploiement
+
+- [ ] `SECRET_KEY` générée (50+ caractères)
+- [ ] `DEBUG=False`
+- [ ] `ALLOWED_HOSTS` configuré
+- [ ] `CORS_ALLOWED_ORIGINS` configuré
+- [ ] `DATABASE_URL` PostgreSQL
+- [ ] Email SMTP configuré et testé
+- [ ] Cron cotisation activé
+- [ ] `collectstatic` exécuté
+- [ ] HTTPS/SSL configuré (Nginx/Caddy)
+- [ ] Mot de passe admin changé
+- [ ] Stockage media configuré (S3 ou volume persistant)
 
 ## Licence
 
