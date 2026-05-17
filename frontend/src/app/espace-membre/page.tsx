@@ -6,7 +6,7 @@ import {
   User, Mail, Phone, MapPin, Briefcase, Building2,
   GraduationCap, Edit3, Save, LogOut, Shield, Calendar,
   Bell, FileText, CreditCard, Users, Search, Download,
-  CheckCircle, MessageSquare, Send,
+  CheckCircle, MessageSquare, Send, Eye, EyeOff,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -51,6 +51,8 @@ export default function EspaceMembrePage() {
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordStatus, setPasswordStatus] = useState<"idle" | "success">("idle");
   const [passwordError, setPasswordError] = useState("");
 
@@ -359,11 +361,21 @@ export default function EspaceMembrePage() {
                     )}
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Mot de passe actuel</label>
-                      <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className={inputClass} />
+                      <div className="relative">
+                        <input type={showOldPassword ? "text" : "password"} value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className={`${inputClass} pr-10`} />
+                        <button type="button" onClick={() => setShowOldPassword(!showOldPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                          {showOldPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Nouveau mot de passe (8 caractères min.)</label>
-                      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} />
+                      <div className="relative">
+                        <input type={showNewPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={`${inputClass} pr-10`} />
+                        <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                          {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
                     </div>
                     <button
                       onClick={handleChangePassword}
