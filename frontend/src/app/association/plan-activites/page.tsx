@@ -60,21 +60,28 @@ const FALLBACK_ACTIVITIES: Activity[] = [
   { id: 12, title: "Bilan annuel & Fête de fin d'année", description: "Présentation du bilan des activités, célébration des réussites de l'année et lancement du plan 2027.", quarter: "Q4", year: 2026, date_label: "Décembre 2026", status: "upcoming", order: 12 },
 ];
 
-const quarterMeta: Record<Quarter, { label: string; period: string }> = {
-  Q1: { label: "1er Trimestre", period: "Janvier — Mars 2026" },
-  Q2: { label: "2e Trimestre", period: "Avril — Juin 2026" },
-  Q3: { label: "3e Trimestre", period: "Juillet — Septembre 2026" },
-  Q4: { label: "4e Trimestre", period: "Octobre — Décembre 2026" },
-};
+function getQuarterMeta(year: string): Record<Quarter, { label: string; period: string }> {
+  return {
+    Q1: { label: "1er Trimestre", period: `Janvier — Mars ${year}` },
+    Q2: { label: "2e Trimestre", period: `Avril — Juin ${year}` },
+    Q3: { label: "3e Trimestre", period: `Juillet — Septembre ${year}` },
+    Q4: { label: "4e Trimestre", period: `Octobre — Décembre ${year}` },
+  };
+}
 
 const quarters: Quarter[] = ["Q1", "Q2", "Q3", "Q4"];
 
-function groupByQuarter(activities: Activity[]): Record<Quarter, QuarterData> {
+function groupByQuarter(activities: Activity[]): { plan: Record<Quarter, QuarterData>; yearLabel: string } {
+  // Determine years from activities
+  const years = [...new Set(activities.map((a) => a.year))].sort();
+  const yearLabel = years.length > 1 ? `${years[0]}/${years[years.length - 1]}` : years.length === 1 ? String(years[0]) : String(new Date().getFullYear());
+  const meta = getQuarterMeta(yearLabel);
+
   const result: Record<Quarter, QuarterData> = {
-    Q1: { ...quarterMeta.Q1, activities: [] },
-    Q2: { ...quarterMeta.Q2, activities: [] },
-    Q3: { ...quarterMeta.Q3, activities: [] },
-    Q4: { ...quarterMeta.Q4, activities: [] },
+    Q1: { ...meta.Q1, activities: [] },
+    Q2: { ...meta.Q2, activities: [] },
+    Q3: { ...meta.Q3, activities: [] },
+    Q4: { ...meta.Q4, activities: [] },
   };
   for (const activity of activities) {
     const q = activity.quarter as Quarter;
@@ -82,7 +89,7 @@ function groupByQuarter(activities: Activity[]): Record<Quarter, QuarterData> {
       result[q].activities.push(activity);
     }
   }
-  return result;
+  return { plan: result, yearLabel };
 }
 
 const statusConfig = {
@@ -173,7 +180,7 @@ function QuarterSection({ quarter, data }: { quarter: Quarter; data: QuarterData
 
 export default function PlanActivitesPage() {
   const { data: activities } = useApiList(() => api.getActivities(), FALLBACK_ACTIVITIES);
-  const plan = groupByQuarter(activities);
+  const { plan, yearLabel } = groupByQuarter(activities);
 
   const allActivities = Object.values(plan).flatMap((q) => q.activities);
   const done = allActivities.filter((a) => a.status === "done").length;
@@ -184,7 +191,7 @@ export default function PlanActivitesPage() {
   return (
     <>
       <PageHeader
-        title="Plan d'activités 2026"
+        title={`Plan d'activités ${yearLabel}`}
         subtitle="Les projets, événements et actions prévus tout au long de l'année pour faire vivre la 2ALHB."
         breadcrumbs={[
           { label: "L'Association", href: "#" },

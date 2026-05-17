@@ -274,6 +274,50 @@ class NotificationAdmin(admin.ModelAdmin):
 
 @admin.register(CotisationPayment)
 class CotisationPaymentAdmin(admin.ModelAdmin):
-    list_display = ["member", "amount", "period_label", "payment_method", "paid_at"]
-    list_filter = ["payment_method"]
-    search_fields = ["member__first_name", "member__last_name", "period_label"]
+    list_display = ["member", "category", "amount", "period_label", "payment_method", "paid_at"]
+    list_filter = ["category", "payment_method", "paid_at"]
+    search_fields = ["member__first_name", "member__last_name", "period_label", "reference"]
+    date_hierarchy = "paid_at"
+    actions = ["export_payments_excel"]
+
+    @admin.action(description="📊 Exporter les paiements sélectionnés en Excel")
+    def export_payments_excel(self, request, queryset):
+        import openpyxl
+        from django.http import HttpResponse
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Paiements 2ALHB"
+
+        headers = [
+            "N° Adhérent", "Nom", "Prénom", "Catégorie", "Montant (FCFA)",
+            "Période", "Mode de paiement", "Référence", "Date de paiement",
+        ]
+        ws.append(headers)
+
+        for cell in ws[1]:
+            cell.font = openpyxl.styles.Font(bold=True)
+
+        for p in queryset.select_related("member"):
+            ws.append([
+                p.member.member_number or "",
+                p.member.last_name,
+                p.member.first_name,
+                p.get_category_display(),
+                p.amount,
+                p.period_label,
+                p.payment_method,
+                p.reference,
+                p.paid_at.strftime("%d/%m/%Y") if p.paid_at else "",
+            ])
+
+        for col in ws.columns:
+            max_length = max(len(str(cell.value or "")) for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = min(max_length + 2, 40)
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = 'attachment; filename="paiements_2alhb.xlsx"'
+        wb.save(response)
+        return response

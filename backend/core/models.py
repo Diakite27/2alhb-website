@@ -521,8 +521,16 @@ class Notification(models.Model):
 class CotisationPayment(models.Model):
     """Historique des paiements de cotisation."""
 
+    PAYMENT_CATEGORY_CHOICES = [
+        ("adhesion", "Droit d'adhésion"),
+        ("cotisation", "Cotisation"),
+    ]
+
     member = models.ForeignKey(
         Member, on_delete=models.CASCADE, related_name="payments", verbose_name="Membre"
+    )
+    category = models.CharField(
+        "Catégorie", max_length=15, choices=PAYMENT_CATEGORY_CHOICES, default="cotisation"
     )
     amount = models.PositiveIntegerField("Montant (FCFA)")
     period_label = models.CharField("Période", max_length=50, help_text="Ex: Avril 2026, Année 2026")
