@@ -80,8 +80,14 @@ export default function BureauPage() {
                   key={member.id ?? i}
                   className="flex items-center gap-4 p-5 rounded-2xl bg-gray-50 dark:bg-dark-card hover:bg-orange/5 dark:hover:bg-orange/10 transition-all group cursor-default"
                 >
-                  <div className="w-14 h-14 bg-gradient-to-br from-green to-green-light rounded-xl flex items-center justify-center shrink-0 group-hover:from-orange group-hover:to-orange-dark transition-all">
-                    <span className="text-white font-bold text-sm">{member.initials}</span>
+                  <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0">
+                    {member.photo_url ? (
+                      <img src={member.photo_url} alt={member.display_name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-green to-green-light flex items-center justify-center group-hover:from-orange group-hover:to-orange-dark transition-all">
+                        <span className="text-white font-bold text-sm">{member.initials}</span>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold text-green dark:text-green-light group-hover:text-orange transition-colors">

@@ -240,10 +240,11 @@ class BureauMemberSerializer(serializers.ModelSerializer):
         fields = ["id", "display_name", "initials", "role", "category", "photo_url", "order"]
 
     def get_photo_url(self, obj):
+        request = self.context.get("request")
         if obj.photo:
-            return obj.photo.url
+            return request.build_absolute_uri(obj.photo.url) if request else obj.photo.url
         if obj.member and obj.member.photo:
-            return obj.member.photo.url
+            return request.build_absolute_uri(obj.member.photo.url) if request else obj.member.photo.url
         return None
 
 
