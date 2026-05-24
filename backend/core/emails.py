@@ -42,6 +42,38 @@ def send_welcome_email(member, password=None):
         fail_silently=True,
     )
 
+    # Envoyer aussi l'email d'accueil paramétrable
+    send_custom_welcome_email(member)
+
+
+def send_custom_welcome_email(member):
+    """Envoie l'email d'accueil personnalisable (paramétré depuis l'admin)."""
+    if not member.email:
+        return
+
+    from .models import AssociationInfo
+    info = AssociationInfo.load()
+
+    # Remplacer les variables dans le corps du message
+    try:
+        body = info.welcome_email_body.format(
+            prenom=member.first_name,
+            nom=member.last_name,
+            promotion=member.promotion.year if member.promotion else "—",
+            type_membre=member.get_membership_type_display(),
+        )
+    except (KeyError, IndexError):
+        # Si le template contient des variables invalides, envoyer tel quel
+        body = info.welcome_email_body
+
+    send_mail(
+        subject=f"[2ALHB] {info.welcome_email_subject}",
+        message=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[member.email],
+        fail_silently=True,
+    )
+
 
 def send_new_event_email(member, event):
     """Notifie un membre par email d'un nouvel événement."""

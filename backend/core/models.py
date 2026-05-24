@@ -401,6 +401,26 @@ class AssociationInfo(models.Model):
     adhesion_fee = models.PositiveIntegerField("Droit d'adhésion (FCFA)", default=5000)
     monthly_fee = models.PositiveIntegerField("Cotisation mensuelle (FCFA)", default=5000)
     annual_fee = models.PositiveIntegerField("Cotisation annuelle (FCFA)", default=60000)
+    welcome_email_subject = models.CharField(
+        "Objet email d'accueil", max_length=200,
+        default="Bienvenue dans la grande famille 2ALHB !",
+        help_text="Objet de l'email d'accueil envoyé en plus du mail technique avec les identifiants."
+    )
+    welcome_email_body = models.TextField(
+        "Corps email d'accueil", 
+        default=(
+            "Cher(e) {prenom},\n\n"
+            "C'est avec un immense plaisir que nous vous accueillons au sein de la 2ALHB — "
+            "l'Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo.\n\n"
+            "Vous faites désormais partie d'un réseau solidaire de plus de 500 anciens élèves "
+            "répartis dans 8 pays, unis par les valeurs d'entraide, d'excellence et de fraternité.\n\n"
+            "N'hésitez pas à consulter l'annuaire des membres, participer aux événements et "
+            "contribuer à la vie de l'amicale.\n\n"
+            "Fraternellement,\n"
+            "Le Bureau de la 2ALHB"
+        ),
+        help_text="Variables disponibles : {prenom}, {nom}, {promotion}, {type_membre}. Ce message est envoyé en complément du mail technique contenant les identifiants."
+    )
 
     class Meta:
         verbose_name = "Infos de l'association"

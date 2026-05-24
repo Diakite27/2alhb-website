@@ -225,6 +225,21 @@ class ActivityAdmin(admin.ModelAdmin):
 @admin.register(AssociationInfo)
 class AssociationInfoAdmin(admin.ModelAdmin):
     list_display = ["name", "email", "phone"]
+    fieldsets = (
+        ("Informations générales", {
+            "fields": ("name", "full_name", "slogan", "email", "phone", "address", "whatsapp"),
+        }),
+        ("Réseaux sociaux", {
+            "fields": ("facebook_url", "linkedin_url"),
+        }),
+        ("Tarifs", {
+            "fields": ("adhesion_fee", "monthly_fee", "annual_fee"),
+        }),
+        ("Email d'accueil (personnalisable)", {
+            "fields": ("welcome_email_subject", "welcome_email_body"),
+            "description": "Ce message est envoyé en complément du mail technique contenant les identifiants de connexion. Variables : {prenom}, {nom}, {promotion}, {type_membre}",
+        }),
+    )
 
     def has_add_permission(self, request):
         return not AssociationInfo.objects.exists()
