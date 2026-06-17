@@ -61,6 +61,7 @@ class PromotionDetailView(generics.RetrieveAPIView):
 
 class MemberListView(generics.ListAPIView):
     serializer_class = MemberPublicSerializer
+    permission_classes = [permissions.AllowAny]
     filterset_fields = ["country", "promotion__year"]
     search_fields = ["first_name", "last_name", "profession", "company"]
 
@@ -72,7 +73,7 @@ class MemberListView(generics.ListAPIView):
 
 class RegistrationThrottle(AnonRateThrottle):
     """Stricter rate limit for registration to prevent abuse."""
-    rate = "3/hour"
+    rate = "10/hour"
 
 
 class MemberRegistrationView(generics.CreateAPIView):
@@ -361,6 +362,9 @@ class MemberDocumentListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         qs = MemberDocument.objects.all()
+        # Non-approved members see no documents
+        if not user.is_approved:
+            return qs.none()
         # Adherent-only docs restricted
         if user.membership_type != "adherent":
             qs = qs.filter(is_adherent_only=False)
@@ -430,3 +434,11 @@ class TestimonialCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(member=self.request.user, is_featured=False)
+
+
+class JobOfferDetailView(generics.RetrieveAPIView):
+    serializer_class = JobOfferSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return JobOffer.objects.filter(is_active=True).select_related("posted_by", "posted_by__promotion")

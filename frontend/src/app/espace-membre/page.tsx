@@ -6,7 +6,7 @@ import {
   User, Mail, Phone, MapPin, Briefcase, Building2,
   GraduationCap, Edit3, Save, LogOut, Shield, Calendar,
   Bell, FileText, CreditCard, Users, Search, Download,
-  CheckCircle, MessageSquare, Send,
+  CheckCircle, MessageSquare, Send, Eye, EyeOff,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -49,6 +49,12 @@ export default function EspaceMembrePage() {
   const [testimonialStatus, setTestimonialStatus] = useState<"idle" | "loading" | "success">("idle");
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [passwordStatus, setPasswordStatus] = useState<"idle" | "success">("idle");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     if (!isLoading && !user) router.push("/connexion");
@@ -69,26 +75,37 @@ export default function EspaceMembrePage() {
   // Load data when tab changes
   useEffect(() => {
     if (!token) return;
-    if (activeTab === "notifications") {
+    let cancelled = false;
+    if (activeTab === "notifications" && notifications.length === 0) {
+      // Only fetch if not already loaded by mount effect
       memberApi.getNotifications(token).then((r) => {
-        setNotifications(r.results);
-        setUnreadCount(r.results.filter((n) => !n.is_read).length);
+        if (!cancelled) {
+          setNotifications(r.results);
+          setUnreadCount(r.results.filter((n) => !n.is_read).length);
+        }
       }).catch(() => {});
     } else if (activeTab === "documents") {
-      memberApi.getDocuments(token).then((r) => setDocuments(r.results)).catch(() => {});
+      memberApi.getDocuments(token).then((r) => { if (!cancelled) setDocuments(r.results); }).catch(() => {});
     } else if (activeTab === "cotisations") {
-      memberApi.getPayments(token).then((r) => setPayments(r.results)).catch(() => {});
+      memberApi.getPayments(token).then((r) => { if (!cancelled) setPayments(r.results); }).catch(() => {});
     } else if (activeTab === "annuaire") {
-      memberApi.getDirectory(token).then((r) => setDirectory(r.results)).catch(() => {});
+      memberApi.getDirectory(token).then((r) => { if (!cancelled) setDirectory(r.results); }).catch(() => {});
     }
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, token]);
 
   // Also load notification count on mount
   useEffect(() => {
     if (token) {
+      let cancelled = false;
       memberApi.getNotifications(token).then((r) => {
-        setUnreadCount(r.results.filter((n) => !n.is_read).length);
+        if (!cancelled) {
+          setNotifications(r.results);
+          setUnreadCount(r.results.filter((n) => !n.is_read).length);
+        }
       }).catch(() => {});
+      return () => { cancelled = true; };
     }
   }, [token]);
 
@@ -106,6 +123,8 @@ export default function EspaceMembrePage() {
       if (!allowedTypes.includes(file.type)) {
         return; // Silently reject non-image files
       }
+      // Revoke previous preview URL to prevent memory leak
+      if (profilePhotoPreview) URL.revokeObjectURL(profilePhotoPreview);
       setProfilePhoto(file);
       setProfilePhotoPreview(URL.createObjectURL(file));
     }
@@ -162,6 +181,19 @@ export default function EspaceMembrePage() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!token) return;
+    setPasswordError("");
+    try {
+      await authApi.changePassword(token, oldPassword, newPassword);
+      setPasswordStatus("success");
+      setOldPassword("");
+      setNewPassword("");
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : "Erreur lors du changement de mot de passe");
+    }
+  };
+
   if (isLoading || !user) {
     return (
       <>
@@ -181,6 +213,11 @@ export default function EspaceMembrePage() {
     m.profession.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.city.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Restrict tabs for non-approved members
+  const availableTabs = user.is_approved
+    ? tabs
+    : tabs.filter((t) => t.id === "profil" || t.id === "notifications");
 
   return (
     <>
@@ -208,9 +245,22 @@ export default function EspaceMembrePage() {
             </div>
           </motion.div>
 
+          {/* Pending approval banner */}
+          {!user.is_approved && (
+            <div className="bg-orange/10 border border-orange/30 rounded-2xl p-5 mb-6 flex items-start gap-3">
+              <Shield className="text-orange shrink-0 mt-0.5" size={20} />
+              <div>
+                <p className="font-semibold text-orange text-sm">Adhésion en attente de validation</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                  Votre demande est en cours d&apos;examen par le bureau. Vous aurez accès à l&apos;ensemble des fonctionnalités une fois votre adhésion approuvée.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Tabs */}
           <div className="flex gap-1 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-            {tabs.map((tab) => (
+            {availableTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -232,6 +282,7 @@ export default function EspaceMembrePage() {
           {/* Tab content */}
           <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             {activeTab === "profil" && (
+              <>
               <div className="bg-white dark:bg-dark-card rounded-2xl p-6 sm:p-8 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-bold text-green dark:text-green-light">{editing ? "Modifier le profil" : "Informations personnelles"}</h2>
@@ -295,6 +346,48 @@ export default function EspaceMembrePage() {
                   </div>
                 )}
               </div>
+
+              {/* Change password */}
+              <div className="bg-white dark:bg-dark-card rounded-2xl p-6 sm:p-8 shadow-sm mt-6">
+                <h2 className="text-lg font-bold text-green dark:text-green-light mb-4">Changer le mot de passe</h2>
+                {passwordStatus === "success" ? (
+                  <div className="flex items-center gap-2 text-green dark:text-green-light text-sm">
+                    <CheckCircle size={16} /> Mot de passe modifié avec succès
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {passwordError && (
+                      <p className="text-red-500 text-sm">{passwordError}</p>
+                    )}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Mot de passe actuel</label>
+                      <div className="relative">
+                        <input type={showOldPassword ? "text" : "password"} value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className={`${inputClass} pr-10`} />
+                        <button type="button" onClick={() => setShowOldPassword(!showOldPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                          {showOldPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Nouveau mot de passe (8 caractères min.)</label>
+                      <div className="relative">
+                        <input type={showNewPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={`${inputClass} pr-10`} />
+                        <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                          {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleChangePassword}
+                      disabled={!oldPassword || !newPassword || newPassword.length < 8}
+                      className="bg-orange text-white px-5 py-2.5 rounded-xl font-medium text-sm disabled:opacity-50"
+                    >
+                      Modifier le mot de passe
+                    </button>
+                  </div>
+                )}
+              </div>
+              </>
             )}
 
             {activeTab === "annuaire" && (

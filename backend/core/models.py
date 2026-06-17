@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models, transaction
+from django.db import models, transaction, connection
 
 
 class Promotion(models.Model):
@@ -82,12 +82,12 @@ class Member(AbstractUser):
     def _generate_member_number_for_promo(promo_year):
         """Generate a unique member number with row-level locking to prevent race conditions."""
         prefix = f"2ALHB-{promo_year}-"
-        existing = (
-            Member.objects.select_for_update()
-            .filter(member_number__startswith=prefix)
-            .order_by("-member_number")
-            .first()
-        )
+        qs = Member.objects.filter(member_number__startswith=prefix)
+        # select_for_update is silently ignored on SQLite; use it only on
+        # backends that support it so we still get locking on PostgreSQL.
+        if connection.vendor != "sqlite":
+            qs = qs.select_for_update()
+        existing = qs.order_by("-member_number").first()
         if existing and existing.member_number:
             try:
                 last_num = int(existing.member_number.split("-")[-1])
@@ -401,6 +401,26 @@ class AssociationInfo(models.Model):
     adhesion_fee = models.PositiveIntegerField("Droit d'adhésion (FCFA)", default=5000)
     monthly_fee = models.PositiveIntegerField("Cotisation mensuelle (FCFA)", default=5000)
     annual_fee = models.PositiveIntegerField("Cotisation annuelle (FCFA)", default=60000)
+    welcome_email_subject = models.CharField(
+        "Objet email d'accueil", max_length=200,
+        default="Bienvenue dans la grande famille 2ALHB !",
+        help_text="Objet de l'email d'accueil envoyé en plus du mail technique avec les identifiants."
+    )
+    welcome_email_body = models.TextField(
+        "Corps email d'accueil", 
+        default=(
+            "Cher(e) {prenom},\n\n"
+            "C'est avec un immense plaisir que nous vous accueillons au sein de la 2ALHB — "
+            "l'Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo.\n\n"
+            "Vous faites désormais partie d'un réseau solidaire de plus de 500 anciens élèves "
+            "répartis dans 8 pays, unis par les valeurs d'entraide, d'excellence et de fraternité.\n\n"
+            "N'hésitez pas à consulter l'annuaire des membres, participer aux événements et "
+            "contribuer à la vie de l'amicale.\n\n"
+            "Fraternellement,\n"
+            "Le Bureau de la 2ALHB"
+        ),
+        help_text="Variables disponibles : {prenom}, {nom}, {promotion}, {type_membre}. Ce message est envoyé en complément du mail technique contenant les identifiants."
+    )
 
     class Meta:
         verbose_name = "Infos de l'association"
@@ -521,8 +541,16 @@ class Notification(models.Model):
 class CotisationPayment(models.Model):
     """Historique des paiements de cotisation."""
 
+    PAYMENT_CATEGORY_CHOICES = [
+        ("adhesion", "Droit d'adhésion"),
+        ("cotisation", "Cotisation"),
+    ]
+
     member = models.ForeignKey(
         Member, on_delete=models.CASCADE, related_name="payments", verbose_name="Membre"
+    )
+    category = models.CharField(
+        "Catégorie", max_length=15, choices=PAYMENT_CATEGORY_CHOICES, default="cotisation"
     )
     amount = models.PositiveIntegerField("Montant (FCFA)")
     period_label = models.CharField("Période", max_length=50, help_text="Ex: Avril 2026, Année 2026")

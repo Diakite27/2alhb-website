@@ -2,6 +2,7 @@ import os
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import FileExtensionValidator
+from django.db import IntegrityError
 from rest_framework import serializers
 
 from .models import (
@@ -71,36 +72,43 @@ class MemberPublicSerializer(serializers.ModelSerializer):
 
 
 class MemberRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, validators=[validate_password])
-    password_confirm = serializers.CharField(write_only=True)
     promotion_year = serializers.IntegerField(write_only=True, required=False)
     photo = serializers.ImageField(required=False, validators=[validate_image_file])
 
     class Meta:
         model = Member
         fields = [
-            "username", "email", "password", "password_confirm",
-            "first_name", "last_name", "phone", "promotion_year",
+            "email", "first_name", "last_name", "phone", "promotion_year",
             "membership_type", "cotisation_mode",
             "profession", "company", "city", "country", "bio", "photo", "linkedin",
         ]
 
+    def validate_email(self, value):
+        if Member.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Un compte avec cet email existe déjà.")
+        return value
+
+    def validate_promotion_year(self, value):
+        import datetime
+        current_year = datetime.date.today().year
+        if value < 1900 or value > current_year + 1:
+            raise serializers.ValidationError(
+                f"L'année de promotion doit être comprise entre 1900 et {current_year + 1}."
+            )
+        return value
+
     def validate_membership_type(self, value):
-        """Only allow 'simple' or 'adherent' — prevent privilege escalation."""
         allowed = ["simple", "adherent"]
         if value not in allowed:
             raise serializers.ValidationError("Type de membre invalide.")
         return value
 
     def validate(self, attrs):
-        if attrs["password"] != attrs.pop("password_confirm"):
-            raise serializers.ValidationError({"password_confirm": "Les mots de passe ne correspondent pas."})
         if attrs.get("membership_type") == "adherent" and not attrs.get("cotisation_mode"):
             raise serializers.ValidationError({"cotisation_mode": "Le mode de cotisation est requis pour les membres adhérents."})
         return attrs
 
     def create(self, validated_data):
-        password = validated_data.pop("password")
         promotion_year = validated_data.pop("promotion_year", None)
 
         # Explicitly prevent mass-assignment of privileged fields
@@ -108,15 +116,38 @@ class MemberRegistrationSerializer(serializers.ModelSerializer):
         validated_data.pop("is_staff", None)
         validated_data.pop("is_superuser", None)
 
+        # Generate username from first_name + last_name
+        import re
+        import secrets
+        first = re.sub(r"[^a-z]", "", validated_data.get("first_name", "").lower().strip())
+        last = re.sub(r"[^a-z]", "", validated_data.get("last_name", "").lower().strip())
+        base_username = f"{first}.{last}" if first and last else f"membre{secrets.token_hex(3)}"
+
+        # Ensure uniqueness
+        username = base_username
+        counter = 1
+        while Member.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        # Generate default password
+        default_password = f"2ALHB-{secrets.token_hex(4)}"
+
         member = Member(**validated_data)
+        member.username = username
         member.is_approved = False
         member.is_staff = False
         member.is_superuser = False
-        member.set_password(password)
+        member.set_password(default_password)
         if promotion_year:
             promo, _ = Promotion.objects.get_or_create(year=promotion_year)
             member.promotion = promo
-        member.save()
+        try:
+            member.save()
+        except IntegrityError:
+            raise serializers.ValidationError(
+                {"email": "Un compte avec cet email existe déjà."}
+            )
         return member
 
 
@@ -209,10 +240,11 @@ class BureauMemberSerializer(serializers.ModelSerializer):
         fields = ["id", "display_name", "initials", "role", "category", "photo_url", "order"]
 
     def get_photo_url(self, obj):
+        request = self.context.get("request")
         if obj.photo:
-            return obj.photo.url
+            return request.build_absolute_uri(obj.photo.url) if request else obj.photo.url
         if obj.member and obj.member.photo:
-            return obj.member.photo.url
+            return request.build_absolute_uri(obj.member.photo.url) if request else obj.member.photo.url
         return None
 
 
@@ -220,13 +252,14 @@ class BureauMemberSerializer(serializers.ModelSerializer):
 
 class JobOfferSerializer(serializers.ModelSerializer):
     posted_by_name = serializers.SerializerMethodField()
+    posted_by_info = serializers.SerializerMethodField()
 
     class Meta:
         model = JobOffer
         fields = [
             "id", "title", "company", "location", "job_type", "sector",
-            "description", "apply_url", "posted_by_name", "poster_email",
-            "is_active", "created_at",
+            "description", "apply_url", "posted_by_name", "posted_by_info",
+            "poster_email", "is_active", "created_at",
         ]
 
     def get_posted_by_name(self, obj):
@@ -234,6 +267,23 @@ class JobOfferSerializer(serializers.ModelSerializer):
             promo = obj.posted_by.promotion.year if obj.posted_by.promotion else ""
             return f"{obj.posted_by.get_full_name()} — Promotion {promo}"
         return obj.poster_name
+
+    def get_posted_by_info(self, obj):
+        if obj.posted_by:
+            return {
+                "id": obj.posted_by.id,
+                "full_name": obj.posted_by.get_full_name(),
+                "profession": obj.posted_by.profession,
+                "company": obj.posted_by.company,
+                "city": obj.posted_by.city,
+                "country": obj.posted_by.country,
+                "photo": obj.posted_by.photo.url if obj.posted_by.photo else None,
+                "promotion_year": obj.posted_by.promotion.year if obj.posted_by.promotion else None,
+                "email": obj.posted_by.email,
+                "phone": obj.posted_by.phone,
+                "linkedin": obj.posted_by.linkedin,
+            }
+        return None
 
 
 class JobOfferCreateSerializer(serializers.ModelSerializer):
@@ -317,6 +367,15 @@ class MemberProfileUpdateSerializer(serializers.ModelSerializer):
         ]
         # Explicitly exclude privileged fields — defense in depth
         read_only_fields: list[str] = []
+
+    def validate_promotion_year(self, value):
+        import datetime
+        current_year = datetime.date.today().year
+        if value < 1900 or value > current_year + 1:
+            raise serializers.ValidationError(
+                f"L'année de promotion doit être comprise entre 1900 et {current_year + 1}."
+            )
+        return value
 
     def update(self, instance, validated_data):
         # Strip any privileged fields that should never be user-editable

@@ -53,6 +53,7 @@ urlpatterns = [
 
     # Job offers
     path("jobs/", views.JobOfferListView.as_view(), name="job-list"),
+    path("jobs/<int:pk>/", views.JobOfferDetailView.as_view(), name="job-detail"),
     path("jobs/create/", views.JobOfferCreateView.as_view(), name="job-create"),
 
     # FAQ

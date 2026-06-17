@@ -1,19 +1,38 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const { headers: optionHeaders, ...restOptions } = options || {};
   const res = await fetch(`${API_BASE}${endpoint}`, {
     headers: {
       "Content-Type": "application/json",
-      ...options?.headers,
+      ...(optionHeaders as Record<string, string>),
     },
-    ...options,
+    ...restOptions,
   });
 
   if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
+    // Try to extract validation error details from the response body
+    let detail = `API error: ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body.detail) {
+        detail = body.detail;
+      } else if (body.email) {
+        detail = Array.isArray(body.email) ? body.email[0] : body.email;
+      } else if (typeof body === "object") {
+        const messages = Object.values(body).flat();
+        if (messages.length > 0) detail = messages.join(" ");
+      }
+    } catch {
+      // Response body is not JSON, use status text
+    }
+    throw new Error(detail);
   }
 
-  return res.json();
+  // Handle empty responses (e.g., 204 No Content)
+  const text = await res.text();
+  if (!text) return {} as T;
+  return JSON.parse(text);
 }
 
 // Types
@@ -116,6 +135,19 @@ export interface JobOffer {
   description: string;
   apply_url: string;
   posted_by_name: string;
+  posted_by_info: {
+    id: number;
+    full_name: string;
+    profession: string;
+    company: string;
+    city: string;
+    country: string;
+    photo: string | null;
+    promotion_year: number | null;
+    email: string;
+    phone: string;
+    linkedin: string;
+  } | null;
   poster_email: string;
   is_active: boolean;
   created_at: string;
@@ -190,6 +222,10 @@ export const api = {
   // Jobs
   getJobs: (params?: string) =>
     fetchAPI<PaginatedResponse<JobOffer>>(`/jobs/${params ? `?${params}` : ""}`),
+  getJob: (id: number, token: string) =>
+    fetchAPI<JobOffer>(`/jobs/${id}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
   createJob: (data: Record<string, unknown>, token?: string) =>
     fetchAPI("/jobs/create/", {
       method: "POST",

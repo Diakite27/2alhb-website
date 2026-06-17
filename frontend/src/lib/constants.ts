@@ -109,5 +109,9 @@ export const FALLBACK_TESTIMONIALS = [
 
 /** Format a number with space as thousands separator (consistent SSR/client) */
 export function formatPrice(n: number): string {
-  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  if (!Number.isFinite(n)) return "0";
+  const isNegative = n < 0;
+  const abs = Math.abs(n);
+  const formatted = abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return isNegative ? `-${formatted}` : formatted;
 }

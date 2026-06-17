@@ -9,6 +9,7 @@ import { NAV_LINKS, SITE_NAME } from "@/lib/constants";
 import type { NavItem } from "@/lib/constants";
 import { useTheme } from "./ThemeProvider";
 import { useAuth } from "@/lib/auth";
+import SearchBar from "./SearchBar";
 
 function DesktopDropdown({ item }: { item: NavItem }) {
   const [open, setOpen] = useState(false);
@@ -218,6 +219,7 @@ export default function Navbar() {
                 </Link>
               )
             )}
+            <SearchBar />
             <button
               onClick={toggleTheme}
               className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-card transition-colors"

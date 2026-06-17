@@ -26,10 +26,11 @@ def notify_new_event(sender, instance, created, **kwargs):
     """Notifie tous les membres approuvés quand un événement est publié."""
     if created and instance.is_published:
         members = Member.objects.filter(is_approved=True, is_active=True)
+        date_str = instance.date.strftime('%d/%m/%Y') if instance.date else "Date à confirmer"
         _bulk_notify(
             members,
             title=f"Nouvel événement : {instance.title}",
-            message=f"{instance.title} le {instance.date.strftime('%d/%m/%Y')} à {instance.location}.",
+            message=f"{instance.title} le {date_str} à {instance.location}.",
             notification_type="event",
             link="/evenements",
         )
@@ -80,6 +81,11 @@ def notify_member_approved(sender, instance, **kwargs):
 
     # Was not approved, now is approved
     if not old.is_approved and instance.is_approved:
+        # Generate a new temporary password to send to the member
+        import secrets
+        temp_password = f"2ALHB-{secrets.token_hex(4)}"
+        instance.set_password(temp_password)
+
         Notification.objects.create(
             recipient=instance,
             title="Bienvenue dans la 2ALHB !",
@@ -87,3 +93,6 @@ def notify_member_approved(sender, instance, **kwargs):
             notification_type="general",
             link="/espace-membre",
         )
+        # Send welcome email with credentials
+        from .emails import send_welcome_email
+        send_welcome_email(instance, temp_password)

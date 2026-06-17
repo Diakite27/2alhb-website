@@ -96,6 +96,8 @@ export default function AdhesionPage() {
         setStatus("error");
         return;
       }
+      // Revoke previous preview URL to prevent memory leak
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
       setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
     }
@@ -125,6 +127,14 @@ export default function AdhesionPage() {
     if (!form.city.trim()) errors.push("La ville est requise");
     if (!form.profession.trim()) errors.push("La profession est requise");
 
+    // Validate promotion is a valid year
+    if (form.promotion.trim()) {
+      const promoYear = parseInt(form.promotion, 10);
+      if (isNaN(promoYear) || promoYear < 1900 || promoYear > new Date().getFullYear() + 1) {
+        errors.push("La promotion doit être une année valide (ex: 1998)");
+      }
+    }
+
     if (form.membership_type === "adherent" && !form.cotisation_mode) {
       errors.push("Choisissez un mode de cotisation (mensuelle ou annuelle)");
     }
@@ -148,13 +158,15 @@ export default function AdhesionPage() {
         formData.append("last_name", form.last_name);
         formData.append("email", form.email);
         formData.append("phone", form.phone);
-        formData.append("promotion", form.promotion);
+        formData.append("promotion_year", form.promotion);
         formData.append("country", form.country);
         formData.append("city", form.city);
         formData.append("profession", form.profession);
         formData.append("bio", form.bio);
         formData.append("membership_type", form.membership_type);
-        formData.append("cotisation_mode", form.cotisation_mode);
+        if (form.membership_type === "adherent") {
+          formData.append("cotisation_mode", form.cotisation_mode);
+        }
         formData.append("photo", photoFile);
 
         const res = await api.register(formData);
@@ -169,13 +181,13 @@ export default function AdhesionPage() {
           last_name: form.last_name,
           email: form.email,
           phone: form.phone,
-          promotion: form.promotion,
+          promotion_year: form.promotion,
           country: form.country,
           city: form.city,
           profession: form.profession,
           bio: form.bio,
           membership_type: form.membership_type,
-          cotisation_mode: form.cotisation_mode,
+          ...(form.membership_type === "adherent" ? { cotisation_mode: form.cotisation_mode } : {}),
         });
       }
       setStatus("success");
