@@ -19,32 +19,28 @@ import PageHeader from "@/components/PageHeader";
 
 const timeline = [
   {
-    year: "2026",
-    title: "Fondation de la 2ALHB",
+    year: "An 1",
+    period: "1er juin 2026 — 31 déc. 2027",
+    title: "Installation & structuration",
     description:
-      "Assemblée Générale Constitutive le 20 avril 2026 à Korhogo. Adoption des statuts et élection du premier Bureau Exécutif.",
+      "Installation, structuration et premières preuves d'impact. Mise en place des fondations de l'association.",
     color: "bg-orange",
   },
   {
-    year: "2026",
-    title: "Premiers pas concrets",
+    year: "An 2",
+    period: "1er janv. 2028 — 31 déc. 2028",
+    title: "Consolidation",
     description:
-      "Lancement des programmes de mentorat, premières retrouvailles inter-promotions et mise en place des commissions.",
+      "Consolidation des acquis, renforcement des programmes et ancrage durable de l'association.",
     color: "bg-green",
   },
   {
-    year: "2026",
-    title: "Le réseau grandit",
+    year: "An 3",
+    period: "1er janv. 2029 — 31 déc. 2029",
+    title: "Rayonnement & extension",
     description:
-      "Développement des antennes à l'international, partenariats stratégiques et premières actions de solidarité envers le lycée.",
+      "Rayonnement et extension de l'association au-delà de ses frontières initiales.",
     color: "bg-orange",
-  },
-  {
-    year: "2026",
-    title: "Cap sur l'avenir",
-    description:
-      "Renforcement du réseau professionnel, actions de soutien au lycée et développement des commissions thématiques.",
-    color: "bg-green",
   },
 ];
 
@@ -193,10 +189,10 @@ export default function PresentationPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimSection className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-green dark:text-green-light mb-4">
-              Notre parcours
+              Parcours stratégique
             </h2>
             <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
-              Les étapes clés qui ont construit la 2ALHB
+              Notre feuille de route sur trois exercices
             </p>
           </AnimSection>
 
@@ -204,7 +200,7 @@ export default function PresentationPage() {
             {/* Horizontal line — desktop */}
             <div className="hidden lg:block absolute top-16 left-0 right-0 h-0.5 bg-green/15 dark:bg-green/25" />
 
-            <div className="grid lg:grid-cols-4 gap-8">
+            <div className="grid lg:grid-cols-3 gap-8">
               {timeline.map((item, i) => (
                 <AnimSection key={i} delay={i * 0.15}>
                   <div className="relative text-center lg:text-left">
@@ -217,6 +213,7 @@ export default function PresentationPage() {
                       {item.year}
                     </span>
                     <div className="lg:mt-12 bg-white dark:bg-dark-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                      <p className="text-xs text-orange font-medium mb-2">{item.period}</p>
                       <h3 className="font-bold text-green dark:text-green-light text-lg mb-2">{item.title}</h3>
                       <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{item.description}</p>
                     </div>
