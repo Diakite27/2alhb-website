@@ -6,6 +6,10 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 
+def email_subject(subject):
+    return f"{settings.EMAIL_SUBJECT_PREFIX}{subject}"
+
+
 def send_welcome_email(member, password=None):
     """Envoie un email de bienvenue quand l'adhésion est approuvée."""
     if not member.email:
@@ -22,7 +26,7 @@ def send_welcome_email(member, password=None):
         )
 
     send_mail(
-        subject="[2ALHB] Bienvenue dans l'amicale !",
+        subject=email_subject("Bienvenue dans l'amicale !"),
         message=(
             f"Bonjour {member.first_name},\n\n"
             f"Votre adhésion à la 2ALHB a été approuvée par le bureau. "
@@ -67,7 +71,7 @@ def send_custom_welcome_email(member):
         body = info.welcome_email_body
 
     send_mail(
-        subject=f"[2ALHB] {info.welcome_email_subject}",
+        subject=email_subject(info.welcome_email_subject),
         message=body,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[member.email],
@@ -83,7 +87,7 @@ def send_new_event_email(member, event):
     date_str = event.date.strftime("%d/%m/%Y à %H:%M") if event.date else "Date à confirmer"
 
     send_mail(
-        subject=f"[2ALHB] Nouvel événement : {event.title}",
+        subject=email_subject(f"Nouvel événement : {event.title}"),
         message=(
             f"Bonjour {member.first_name},\n\n"
             f"Un nouvel événement a été publié :\n\n"
@@ -94,6 +98,29 @@ def send_new_event_email(member, event):
             f"Rendez-vous sur le site pour plus de détails.\n\n"
             f"Fraternellement,\n"
             f"Le Bureau de la 2ALHB"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[member.email],
+        fail_silently=True,
+    )
+
+
+def send_membership_revoked_email(member):
+    """Informe un membre que son adhésion n'est plus approuvée."""
+    if not member.email:
+        return
+
+    send_mail(
+        subject=email_subject("Information sur votre adhésion"),
+        message=(
+            f"Bonjour {member.first_name},\n\n"
+            f"Nous vous informons que votre adhésion à la 2ALHB n'est plus active. "
+            f"Vous n'avez plus accès aux services réservés aux membres de l'amicale.\n\n"
+            f"Si vous pensez qu'il s'agit d'une erreur ou si vous souhaitez obtenir "
+            f"des informations complémentaires, nous vous invitons à contacter le bureau.\n\n"
+            f"Fraternellement,\n"
+            f"Le Bureau de la 2ALHB\n"
+            f"Amicale des Anciens du Lycée Houphouët-Boigny de Korhogo"
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[member.email],

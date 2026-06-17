@@ -69,8 +69,8 @@ def notify_new_document(sender, instance, created, **kwargs):
 
 
 @receiver(pre_save, sender=Member)
-def notify_member_approved(sender, instance, **kwargs):
-    """Notifie le membre quand son adhésion est approuvée."""
+def notify_member_approval_change(sender, instance, **kwargs):
+    """Notifie le membre quand son statut d'approbation change."""
     if not instance.pk:
         return  # New member, skip
 
@@ -79,9 +79,7 @@ def notify_member_approved(sender, instance, **kwargs):
     except Member.DoesNotExist:
         return
 
-    # Was not approved, now is approved
     if not old.is_approved and instance.is_approved:
-        # Generate a new temporary password to send to the member
         import secrets
         temp_password = f"2ALHB-{secrets.token_hex(4)}"
         instance.set_password(temp_password)
@@ -93,6 +91,16 @@ def notify_member_approved(sender, instance, **kwargs):
             notification_type="general",
             link="/espace-membre",
         )
-        # Send welcome email with credentials
         from .emails import send_welcome_email
         send_welcome_email(instance, temp_password)
+
+    elif old.is_approved and not instance.is_approved:
+        Notification.objects.create(
+            recipient=instance,
+            title="Adhésion non active",
+            message="Votre adhésion à la 2ALHB n'est plus active. Vous n'avez plus accès aux services réservés aux membres.",
+            notification_type="general",
+            link="/contact",
+        )
+        from .emails import send_membership_revoked_email
+        send_membership_revoked_email(instance)

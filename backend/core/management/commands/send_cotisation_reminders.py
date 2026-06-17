@@ -12,6 +12,7 @@ import datetime
 from django.core.management.base import BaseCommand
 from django.core.mail import send_mail
 from django.conf import settings
+from core.emails import email_subject
 from core.models import Member, CotisationPayment, Notification
 
 
@@ -77,7 +78,7 @@ class Command(BaseCommand):
                     if member.email:
                         try:
                             send_mail(
-                                subject="[2ALHB] Rappel de cotisation",
+                                subject=email_subject("Rappel de cotisation"),
                                 message=(
                                     f"Bonjour {member.first_name},\n\n"
                                     f"Nous vous rappelons que votre cotisation est en retard ({period_info}).\n\n"
