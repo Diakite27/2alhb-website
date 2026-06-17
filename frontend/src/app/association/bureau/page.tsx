@@ -2,7 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { ArrowRight, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { api, BureauMember } from "@/lib/api";
@@ -19,15 +19,17 @@ const FALLBACK_BUREAU: BureauMember[] = [
 interface Commission {
   name: string;
   initials: string;
+  description: string;
+  color: string;
 }
 
 const commissions: Commission[] = [
-  { name: "Commission Soutien Scolaire & Bourses d'Études", initials: "SB" },
-  { name: "Commission Événements & Réseautage", initials: "ER" },
-  { name: "Commission Infrastructure & Équipements", initials: "IE" },
-  { name: "Commission Insertion Professionnelle & Carrière", initials: "IP" },
-  { name: "Commission Communication & Média", initials: "CM" },
-  { name: "Commission Mémoire & Archives", initials: "MA" },
+  { name: "Soutien scolaire & bourses", initials: "SB", description: "Bourses d'études, mentorat académique, parrainage et soutien scolaire.", color: "from-green to-green-light" },
+  { name: "Événements & réseautage", initials: "ER", description: "Gala, retrouvailles, cérémonies, tournois et activités de cohésion.", color: "from-orange to-orange-dark" },
+  { name: "Infrastructure & équipements", initials: "IE", description: "Mobilisation de ressources pour les besoins, travaux et équipements du lycée.", color: "from-green to-green-light" },
+  { name: "Insertion pro & carrière", initials: "IP", description: "Job board, forum carrière, mentorat et diffusion d'opportunités d'emploi.", color: "from-orange to-orange-dark" },
+  { name: "Communication & média", initials: "CM", description: "Site web, réseaux sociaux, newsletter, presse et documents officiels.", color: "from-green to-green-light" },
+  { name: "Mémoire & archives", initials: "MA", description: "Collecte, conservation, annuaire, revue annuelle et mémoire du lycée.", color: "from-orange to-orange-dark" },
 ];
 
 function AnimSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
@@ -100,7 +102,37 @@ export default function BureauPage() {
             </div>
           </AnimSection>
 
-          {/* Commissions Thématiques — masqué pour le moment */}
+          {/* Commissions Thématiques */}
+          <AnimSection className="mb-16" delay={0.1}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-1.5 h-8 bg-orange rounded-full" />
+              <h2 className="text-2xl font-bold text-green dark:text-green-light">Les Commissions Thématiques</h2>
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 mb-8 text-sm">
+              6 commissions obligatoires (Article 43). D&apos;autres commissions peuvent être créées au besoin par le Bureau Exécutif.
+            </p>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {commissions.map((commission, i) => (
+                <div
+                  key={i}
+                  className="p-5 rounded-2xl bg-gray-50 dark:bg-dark-card hover:bg-orange/5 dark:hover:bg-orange/10 transition-all group cursor-default border border-gray-100 dark:border-gray-800"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${commission.color} flex items-center justify-center shrink-0`}>
+                      <span className="text-white font-bold text-xs">{commission.initials}</span>
+                    </div>
+                    <h3 className="font-bold text-green dark:text-green-light group-hover:text-orange transition-colors text-sm">
+                      {commission.name}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                    {commission.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </AnimSection>
         </div>
       </section>
 
