@@ -7,24 +7,17 @@ import Link from "next/link";
 import TiltCard from "./TiltCard";
 import { api, NewsArticle } from "@/lib/api";
 import { useApiList } from "@/lib/hooks";
+import { formatDate } from "@/lib/format";
 
 const FALLBACK_NEWS: NewsArticle[] = [];
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 export default function News() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { data: articles, loading } = useApiList(() => api.getNews(), FALLBACK_NEWS);
 
-  // Ne rien afficher s'il n'y a pas d'articles
-  if (!loading && articles.length === 0) return null;
+  // Ne rien afficher pendant le chargement ou s'il n'y a pas d'articles
+  if (loading || articles.length === 0) return null;
 
   // Afficher les 3 derniers articles
   const latestArticles = articles.slice(0, 3);

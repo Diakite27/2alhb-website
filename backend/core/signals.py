@@ -1,5 +1,7 @@
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+import secrets
+
 from .models import Event, JobOffer, MemberDocument, Member, NewsArticle, Notification
 
 NOTIFICATION_BATCH_SIZE = 500
@@ -82,7 +84,6 @@ def notify_member_approved(sender, instance, **kwargs):
     # Was not approved, now is approved
     if not old.is_approved and instance.is_approved:
         # Generate a new temporary password to send to the member
-        import secrets
         temp_password = f"2ALHB-{secrets.token_hex(4)}"
         instance.set_password(temp_password)
 

@@ -89,32 +89,6 @@ def send_custom_welcome_email(member):
     )
 
 
-def send_new_event_email(member, event):
-    """Notifie un membre par email d'un nouvel événement."""
-    if not member.email:
-        return
-
-    date_str = event.date.strftime("%d/%m/%Y à %H:%M") if event.date else "Date à confirmer"
-
-    send_mail(
-        subject=f"[2ALHB] Nouvel événement : {event.title}",
-        message=(
-            f"Bonjour {member.first_name},\n\n"
-            f"Un nouvel événement a été publié :\n\n"
-            f"📅 {event.title}\n"
-            f"📍 {event.location}\n"
-            f"🕐 {date_str}\n\n"
-            f"{event.description[:200]}...\n\n"
-            f"Rendez-vous sur le site pour plus de détails.\n\n"
-            f"Fraternellement,\n"
-            f"Le Bureau de la 2ALHB"
-        ),
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[member.email],
-        fail_silently=True,
-    )
-
-
 # === Newsletter : envoi aux abonnés ===
 
 
@@ -158,12 +132,8 @@ def _send_to_subscribers(subject, body, recipient_emails=None):
         for email in recipient_emails
     ]
 
-    try:
-        send_mass_mail(email_tuples, fail_silently=True)
-        logger.info("Newsletter '%s' envoyée à %d abonné(s).", subject, len(email_tuples))
-    except Exception:
-        logger.exception("Erreur lors de l'envoi de la newsletter '%s'.", subject)
-        return 0
+    send_mass_mail(email_tuples, fail_silently=True)
+    logger.info("Newsletter '%s' envoyée à %d abonné(s).", subject, len(email_tuples))
 
     return len(email_tuples)
 

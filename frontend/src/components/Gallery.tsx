@@ -14,8 +14,8 @@ export default function Gallery() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { data: albums, loading } = useApiList(() => galleryApi.getAlbums(), FALLBACK_ALBUMS);
 
-  // Ne rien afficher s'il n'y a pas d'albums
-  if (!loading && albums.length === 0) return null;
+  // Ne rien afficher pendant le chargement ou s'il n'y a pas d'albums
+  if (loading || albums.length === 0) return null;
 
   // Afficher les 4 derniers albums
   const latestAlbums = albums.slice(0, 4);

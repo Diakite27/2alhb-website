@@ -10,16 +10,9 @@ import ScrollToTop from "@/components/ScrollToTop";
 import PageHeader from "@/components/PageHeader";
 import { api, NewsArticle } from "@/lib/api";
 import { useApiList } from "@/lib/hooks";
+import { formatDate } from "@/lib/format";
 
 const FALLBACK_NEWS: NewsArticle[] = [];
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 function AnimSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
