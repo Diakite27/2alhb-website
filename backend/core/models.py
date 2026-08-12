@@ -562,3 +562,80 @@ class CotisationPayment(models.Model):
 
     def __str__(self):
         return f"{self.member.get_full_name()} — {self.amount} FCFA ({self.period_label})"
+
+
+class OfficialDocument(models.Model):
+    """Document officiel de l'association (statuts, règlement intérieur)."""
+
+    DOCUMENT_TYPE_CHOICES = [
+        ("statuts", "Statuts"),
+        ("reglement", "Règlement Intérieur"),
+    ]
+
+    document_type = models.CharField(
+        "Type de document", max_length=20, choices=DOCUMENT_TYPE_CHOICES, unique=True
+    )
+    title = models.CharField("Titre", max_length=200)
+    subtitle = models.CharField("Sous-titre", max_length=300, blank=True)
+    preamble = models.TextField("Préambule", blank=True)
+    version = models.CharField("Version", max_length=50, default="1.0")
+    adopted_date = models.CharField("Date d'adoption", max_length=100, blank=True, help_text="Ex: 20 avril 2026")
+    pdf_file = models.FileField("Fichier PDF", upload_to="official_documents/", blank=True)
+    section_label = models.CharField(
+        "Nom des sections", max_length=50, default="Chapitre",
+        help_text="Ex: 'Chapitre' pour statuts, 'Titre' pour règlement"
+    )
+    note = models.TextField("Note de bas de page", blank=True, help_text="Texte affiché en bas avant le lien vers le document associé")
+    is_published = models.BooleanField("Publié", default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Document officiel"
+        verbose_name_plural = "Documents officiels"
+        ordering = ["document_type"]
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def total_articles(self):
+        return sum(s.articles_count for s in self.sections.all())
+
+
+class OfficialDocumentSection(models.Model):
+    """Section (chapitre/titre) d'un document officiel."""
+
+    document = models.ForeignKey(
+        OfficialDocument, on_delete=models.CASCADE, related_name="sections", verbose_name="Document"
+    )
+    number = models.PositiveIntegerField("Numéro")
+    title = models.CharField("Titre", max_length=300)
+    articles_count = models.PositiveIntegerField("Nombre d'articles", default=0)
+    order = models.PositiveIntegerField("Ordre d'affichage", default=0)
+
+    class Meta:
+        verbose_name = "Section"
+        verbose_name_plural = "Sections"
+        ordering = ["order", "number"]
+        unique_together = ["document", "number"]
+
+    def __str__(self):
+        return f"{self.document.section_label} {self.number} : {self.title}"
+
+
+class OfficialDocumentArticle(models.Model):
+    """Article d'une section d'un document officiel."""
+
+    section = models.ForeignKey(
+        OfficialDocumentSection, on_delete=models.CASCADE, related_name="articles", verbose_name="Section"
+    )
+    content = models.TextField("Contenu de l'article")
+    order = models.PositiveIntegerField("Ordre", default=0)
+
+    class Meta:
+        verbose_name = "Article"
+        verbose_name_plural = "Articles"
+        ordering = ["order"]
+
+    def __str__(self):
+        return self.content[:80]

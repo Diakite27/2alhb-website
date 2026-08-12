@@ -10,6 +10,7 @@ from .models import (
     Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
     NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
+    OfficialDocument, OfficialDocumentSection, OfficialDocumentArticle,
 )
 
 ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"]
@@ -471,3 +472,41 @@ class TestimonialCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Testimonial
         fields = ["content"]
+
+
+# --- Documents Officiels (Statuts / Règlement) ---
+
+class OfficialDocumentArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfficialDocumentArticle
+        fields = ["id", "content", "order"]
+
+
+class OfficialDocumentSectionSerializer(serializers.ModelSerializer):
+    articles = OfficialDocumentArticleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = OfficialDocumentSection
+        fields = ["id", "number", "title", "articles_count", "order", "articles"]
+
+
+class OfficialDocumentSerializer(serializers.ModelSerializer):
+    sections = OfficialDocumentSectionSerializer(many=True, read_only=True)
+    total_articles = serializers.IntegerField(read_only=True, source="total_articles_count")
+    pdf_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OfficialDocument
+        fields = [
+            "id", "document_type", "title", "subtitle", "preamble",
+            "version", "adopted_date", "section_label", "note",
+            "pdf_url", "total_articles", "sections",
+        ]
+
+    def get_pdf_url(self, obj):
+        if obj.pdf_file:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.pdf_file.url)
+            return obj.pdf_file.url
+        return None

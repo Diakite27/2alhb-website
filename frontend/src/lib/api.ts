@@ -178,6 +178,36 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+export interface OfficialDocumentArticle {
+  id: number;
+  content: string;
+  order: number;
+}
+
+export interface OfficialDocumentSection {
+  id: number;
+  number: number;
+  title: string;
+  articles_count: number;
+  order: number;
+  articles: OfficialDocumentArticle[];
+}
+
+export interface OfficialDocumentData {
+  id: number;
+  document_type: string;
+  title: string;
+  subtitle: string;
+  preamble: string;
+  version: string;
+  adopted_date: string;
+  section_label: string;
+  note: string;
+  pdf_url: string | null;
+  total_articles: number;
+  sections: OfficialDocumentSection[];
+}
+
 // API calls
 export const api = {
   // Association
@@ -239,6 +269,9 @@ export const api = {
   // Activities
   getActivities: (params?: string) =>
     fetchAPI<PaginatedResponse<Activity>>(`/activities/${params ? `?${params}` : ""}`),
+
+  // Documents officiels (Statuts / Règlement)
+  getOfficialDocument: (type: string) => fetchAPI<OfficialDocumentData>(`/documents/${type}/`),
 
   // Contact
   contact: (data: Record<string, unknown>) =>

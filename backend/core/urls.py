@@ -62,6 +62,9 @@ urlpatterns = [
     # Activities / Plan
     path("activities/", views.ActivityListView.as_view(), name="activity-list"),
 
+    # Documents officiels (Statuts / Règlement)
+    path("documents/<str:document_type>/", views.official_document_view, name="official-document"),
+
     # Newsletter
     path("newsletter/subscribe/", views.NewsletterSubscribeView.as_view(), name="newsletter-subscribe"),
     path("newsletter/unsubscribe/", views.newsletter_unsubscribe, name="newsletter-unsubscribe"),

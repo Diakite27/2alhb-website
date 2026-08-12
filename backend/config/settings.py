@@ -182,6 +182,8 @@ JAZZMIN_SETTINGS = {
         "core.MemberDocument": "fas fa-file-pdf",
         "core.Notification": "fas fa-bell",
         "core.CotisationPayment": "fas fa-money-bill-wave",
+        "core.OfficialDocument": "fas fa-gavel",
+        "core.OfficialDocumentSection": "fas fa-list-ol",
     },
     "default_icon_parents": "fas fa-folder",
     "default_icon_children": "fas fa-circle",
