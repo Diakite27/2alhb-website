@@ -2,7 +2,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
@@ -452,19 +452,12 @@ class JobOfferDetailView(generics.RetrieveAPIView):
 @permission_classes([permissions.AllowAny])
 def official_document_view(request, document_type):
     """Retourne un document officiel avec ses sections et articles."""
-    from django.db.models import Sum
-
     try:
         doc = OfficialDocument.objects.prefetch_related(
             "sections__articles"
         ).get(document_type=document_type, is_published=True)
     except OfficialDocument.DoesNotExist:
         return Response({"detail": "Document non trouvé."}, status=404)
-
-    # Annoter le total d'articles
-    doc.total_articles_count = doc.sections.aggregate(
-        total=Sum("articles_count")
-    )["total"] or 0
 
     serializer = OfficialDocumentSerializer(doc, context={"request": request})
     return Response(serializer.data)
