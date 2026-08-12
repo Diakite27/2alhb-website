@@ -31,6 +31,8 @@ export const NAV_LINKS: NavItem[] = [
     ],
   },
   { label: "Événements", href: "/evenements" },
+  { label: "Actualités", href: "/actualites" },
+  { label: "Galerie", href: "/galerie" },
   { label: "Emplois", href: "/emplois" },
   { label: "Contact", href: "/#contact" },
 ];

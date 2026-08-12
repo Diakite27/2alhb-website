@@ -476,10 +476,6 @@ class GalleryAlbum(models.Model):
     def __str__(self):
         return self.title
 
-    @property
-    def photos_count(self):
-        return self.images.count()
-
 
 class MemberDocument(models.Model):
     """Document réservé aux membres adhérents (PV, rapports, newsletters)."""

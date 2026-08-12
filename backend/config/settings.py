@@ -148,6 +148,9 @@ if _default_from and "<" not in _default_from and "@" in _default_from:
 DEFAULT_FROM_EMAIL = _default_from
 EMAIL_SUBJECT_PREFIX = os.getenv("EMAIL_SUBJECT_PREFIX", "[2ALHB] ")
 
+# URL publique du site (utilisée dans les emails newsletter)
+SITE_URL = os.getenv("SITE_URL", "https://2alhb.ci")
+
 
 # Jazzmin Admin Theme
 JAZZMIN_SETTINGS = {

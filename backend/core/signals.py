@@ -1,6 +1,9 @@
+import secrets
+
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from .models import Event, JobOffer, MemberDocument, Member, Notification
+
+from .models import Event, JobOffer, MemberDocument, Member, NewsArticle, Notification
 
 NOTIFICATION_BATCH_SIZE = 500
 
@@ -79,8 +82,8 @@ def notify_member_approval_change(sender, instance, **kwargs):
     except Member.DoesNotExist:
         return
 
+    # Was not approved, now is approved
     if not old.is_approved and instance.is_approved:
-        import secrets
         temp_password = f"2ALHB-{secrets.token_hex(4)}"
         instance.set_password(temp_password)
 
@@ -94,6 +97,7 @@ def notify_member_approval_change(sender, instance, **kwargs):
         from .emails import send_welcome_email
         send_welcome_email(instance, temp_password)
 
+    # Was approved, now is revoked
     elif old.is_approved and not instance.is_approved:
         Notification.objects.create(
             recipient=instance,
@@ -104,3 +108,21 @@ def notify_member_approval_change(sender, instance, **kwargs):
         )
         from .emails import send_membership_revoked_email
         send_membership_revoked_email(instance)
+
+
+# --- Newsletter : envoi aux abonnés ---
+
+@receiver(post_save, sender=Event)
+def newsletter_notify_new_event(sender, instance, created, **kwargs):
+    """Envoie un email aux abonnés newsletter quand un événement est publié."""
+    if created and instance.is_published:
+        from .emails import send_newsletter_event
+        send_newsletter_event(instance)
+
+
+@receiver(post_save, sender=NewsArticle)
+def newsletter_notify_new_article(sender, instance, created, **kwargs):
+    """Envoie un email aux abonnés newsletter quand un article est publié."""
+    if created and instance.is_published:
+        from .emails import send_newsletter_news
+        send_newsletter_news(instance)
