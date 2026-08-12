@@ -11,6 +11,7 @@ from .models import (
     Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
     NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
+    OfficialDocument,
 )
 from .serializers import (
     PromotionSerializer, PromotionListSerializer,
@@ -25,6 +26,7 @@ from .serializers import (
     NewsletterSubscribeSerializer,
     MemberDocumentSerializer, NotificationSerializer, CotisationPaymentSerializer,
     TestimonialCreateSerializer,
+    OfficialDocumentSerializer,
 )
 
 
@@ -442,3 +444,27 @@ class JobOfferDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return JobOffer.objects.filter(is_active=True).select_related("posted_by", "posted_by__promotion")
+
+
+# --- Documents Officiels (Statuts / Règlement) ---
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def official_document_view(request, document_type):
+    """Retourne un document officiel avec ses sections et articles."""
+    from django.db.models import Sum
+
+    try:
+        doc = OfficialDocument.objects.prefetch_related(
+            "sections__articles"
+        ).get(document_type=document_type, is_published=True)
+    except OfficialDocument.DoesNotExist:
+        return Response({"detail": "Document non trouvé."}, status=404)
+
+    # Annoter le total d'articles
+    doc.total_articles_count = doc.sections.aggregate(
+        total=Sum("articles_count")
+    )["total"] or 0
+
+    serializer = OfficialDocumentSerializer(doc, context={"request": request})
+    return Response(serializer.data)

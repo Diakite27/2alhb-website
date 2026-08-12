@@ -6,6 +6,7 @@ from .models import (
     Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
     NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
+    OfficialDocument, OfficialDocumentSection, OfficialDocumentArticle,
 )
 
 admin.site.site_header = "Administration de 2ALHB"
@@ -374,3 +375,47 @@ class CotisationPaymentAdmin(admin.ModelAdmin):
         response["Content-Disposition"] = 'attachment; filename="paiements_2alhb.xlsx"'
         wb.save(response)
         return response
+
+
+# --- Documents officiels (Statuts / Règlement) ---
+
+class OfficialDocumentArticleInline(admin.TabularInline):
+    model = OfficialDocumentArticle
+    extra = 1
+    fields = ["content", "order"]
+    ordering = ["order"]
+
+
+class OfficialDocumentSectionInline(admin.TabularInline):
+    model = OfficialDocumentSection
+    extra = 1
+    fields = ["number", "title", "articles_count", "order"]
+    ordering = ["order", "number"]
+    show_change_link = True
+
+
+@admin.register(OfficialDocument)
+class OfficialDocumentAdmin(admin.ModelAdmin):
+    list_display = ["title", "document_type", "version", "adopted_date", "is_published"]
+    list_filter = ["document_type", "is_published"]
+    inlines = [OfficialDocumentSectionInline]
+    fieldsets = (
+        (None, {
+            "fields": ("document_type", "title", "subtitle", "version", "adopted_date", "is_published"),
+        }),
+        ("Contenu", {
+            "fields": ("preamble", "section_label", "note"),
+        }),
+        ("Fichier PDF", {
+            "fields": ("pdf_file",),
+            "description": "Le PDF que les utilisateurs peuvent télécharger.",
+        }),
+    )
+
+
+@admin.register(OfficialDocumentSection)
+class OfficialDocumentSectionAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "document", "number", "articles_count", "order"]
+    list_filter = ["document"]
+    inlines = [OfficialDocumentArticleInline]
+    ordering = ["document", "order", "number"]
