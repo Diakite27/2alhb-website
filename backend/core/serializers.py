@@ -492,7 +492,7 @@ class OfficialDocumentSectionSerializer(serializers.ModelSerializer):
 
 class OfficialDocumentSerializer(serializers.ModelSerializer):
     sections = OfficialDocumentSectionSerializer(many=True, read_only=True)
-    total_articles = serializers.IntegerField(read_only=True, source="total_articles_count")
+    total_articles = serializers.IntegerField(read_only=True)
     pdf_url = serializers.SerializerMethodField()
 
     class Meta:
