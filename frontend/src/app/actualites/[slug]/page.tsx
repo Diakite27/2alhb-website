@@ -9,14 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import { api, NewsArticle } from "@/lib/api";
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
+import { formatDate } from "@/lib/format";
 
 export default function ArticleDetailPage() {
   const params = useParams();
