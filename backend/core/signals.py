@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from .models import Event, JobOffer, MemberDocument, Member, Notification
+from .models import Event, JobOffer, MemberDocument, Member, NewsArticle, Notification
 
 NOTIFICATION_BATCH_SIZE = 500
 
@@ -96,3 +96,21 @@ def notify_member_approved(sender, instance, **kwargs):
         # Send welcome email with credentials
         from .emails import send_welcome_email
         send_welcome_email(instance, temp_password)
+
+
+# --- Newsletter : envoi aux abonnés ---
+
+@receiver(post_save, sender=Event)
+def newsletter_notify_new_event(sender, instance, created, **kwargs):
+    """Envoie un email aux abonnés newsletter quand un événement est publié."""
+    if created and instance.is_published:
+        from .emails import send_newsletter_event
+        send_newsletter_event(instance)
+
+
+@receiver(post_save, sender=NewsArticle)
+def newsletter_notify_new_article(sender, instance, created, **kwargs):
+    """Envoie un email aux abonnés newsletter quand un article est publié."""
+    if created and instance.is_published:
+        from .emails import send_newsletter_news
+        send_newsletter_news(instance)

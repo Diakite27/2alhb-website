@@ -1,0 +1,50 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Envoyer une newsletter{% endblock %}
+
+{% block content %}
+<h1>📧 Envoyer une newsletter</h1>
+
+<p style="margin-bottom: 20px; font-size: 14px; color: #666;">
+    Cette newsletter sera envoyée à <strong>{{ subscribers_count }}</strong> abonné(s) actif(s) sélectionné(s).
+</p>
+
+<form method="post" action="">
+    {% csrf_token %}
+
+    {% for obj in queryset %}
+    <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}" />
+    {% endfor %}
+
+    <input type="hidden" name="action" value="send_custom_newsletter" />
+
+    <div style="margin-bottom: 20px;">
+        <label for="id_subject" style="display: block; font-weight: bold; margin-bottom: 5px;">
+            Objet de la newsletter :
+        </label>
+        <input type="text" id="id_subject" name="subject" 
+               style="width: 100%; max-width: 600px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;"
+               placeholder="Ex: Retour sur le Gala 2026" required />
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label for="id_body" style="display: block; font-weight: bold; margin-bottom: 5px;">
+            Contenu du message :
+        </label>
+        <textarea id="id_body" name="body" rows="12"
+                  style="width: 100%; max-width: 600px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit;"
+                  placeholder="Cher(e)s ami(e)s de la 2ALHB,&#10;&#10;Écrivez votre message ici..." required></textarea>
+        <p style="font-size: 12px; color: #888; margin-top: 5px;">
+            Le pied de page de désabonnement sera ajouté automatiquement.
+        </p>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <input type="submit" name="apply" value="📨 Envoyer la newsletter"
+               style="padding: 10px 24px; background: #417690; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer;" />
+        <a href="{% url 'admin:core_newslettersubscriber_changelist' %}"
+           style="margin-left: 15px; color: #666; text-decoration: none;">Annuler</a>
+    </div>
+</form>
+{% endblock %}

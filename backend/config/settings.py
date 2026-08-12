@@ -144,6 +144,9 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "2ALHB <contact@2alhb.ci>")
 
+# URL publique du site (utilisée dans les emails newsletter)
+SITE_URL = os.getenv("SITE_URL", "https://2alhb.ci")
+
 
 # Jazzmin Admin Theme
 JAZZMIN_SETTINGS = {

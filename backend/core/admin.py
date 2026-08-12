@@ -1,5 +1,6 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.template.response import TemplateResponse
 from .models import (
     Promotion, Member, Testimonial, Event, NewsArticle,
     Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
@@ -253,6 +254,43 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
     list_display = ["email", "is_active", "subscribed_at"]
     list_filter = ["is_active"]
     search_fields = ["email"]
+    actions = ["send_custom_newsletter"]
+
+    @admin.action(description="📧 Envoyer une newsletter aux abonnés sélectionnés")
+    def send_custom_newsletter(self, request, queryset):
+        """Action admin pour envoyer une newsletter personnalisée."""
+        if "apply" in request.POST:
+            subject = request.POST.get("subject", "").strip()
+            body = request.POST.get("body", "").strip()
+
+            if not subject or not body:
+                self.message_user(request, "❌ L'objet et le contenu sont obligatoires.", messages.ERROR)
+                return
+
+            active_emails = list(queryset.filter(is_active=True).values_list("email", flat=True))
+            if not active_emails:
+                self.message_user(request, "❌ Aucun abonné actif dans la sélection.", messages.WARNING)
+                return
+
+            from .emails import send_newsletter_custom
+
+            sent_count = send_newsletter_custom(subject, body, recipient_emails=active_emails)
+
+            self.message_user(
+                request,
+                f"✅ Newsletter envoyée avec succès à {sent_count} abonné(s).",
+                messages.SUCCESS,
+            )
+            return
+
+        # Afficher le formulaire intermédiaire
+        return TemplateResponse(request, "admin/newsletter_send_form.html", {
+            "title": "Envoyer une newsletter",
+            "queryset": queryset,
+            "opts": self.model._meta,
+            "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
+            "subscribers_count": queryset.filter(is_active=True).count(),
+        })
 
 
 class GalleryImageInline(admin.TabularInline):
