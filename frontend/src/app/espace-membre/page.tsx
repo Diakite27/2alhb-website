@@ -44,6 +44,9 @@ export default function EspaceMembrePage() {
   const [payments, setPayments] = useState<CotisationPaymentItem[]>([]);
   const [directory, setDirectory] = useState<MemberPublic[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [directoryNextPage, setDirectoryNextPage] = useState<string | null>(null);
+  const [directoryTotal, setDirectoryTotal] = useState(0);
+  const [directoryLoading, setDirectoryLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [testimonialText, setTestimonialText] = useState("");
   const [testimonialStatus, setTestimonialStatus] = useState<"idle" | "loading" | "success">("idle");
@@ -89,7 +92,15 @@ export default function EspaceMembrePage() {
     } else if (activeTab === "cotisations") {
       memberApi.getPayments(token).then((r) => { if (!cancelled) setPayments(r.results); }).catch(() => {});
     } else if (activeTab === "annuaire") {
-      memberApi.getDirectory(token).then((r) => { if (!cancelled) setDirectory(r.results); }).catch(() => {});
+      setDirectoryLoading(true);
+      memberApi.getDirectory(token).then((r) => {
+        if (!cancelled) {
+          setDirectory(r.results);
+          setDirectoryNextPage(r.next);
+          setDirectoryTotal(r.count);
+          setDirectoryLoading(false);
+        }
+      }).catch(() => { if (!cancelled) setDirectoryLoading(false); });
     }
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -396,23 +407,48 @@ export default function EspaceMembrePage() {
                   <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Rechercher un membre..." className={`${inputClass} pl-10`} />
                 </div>
-                <p className="text-sm text-gray-400">{filteredDirectory.length} membre{filteredDirectory.length > 1 ? "s" : ""}</p>
+                <p className="text-sm text-gray-400">{filteredDirectory.length} membre{filteredDirectory.length > 1 ? "s" : ""} affichés sur {directoryTotal}</p>
                 {filteredDirectory.length === 0 ? (
                   <div className="text-center py-12 text-gray-400"><Users size={40} className="mx-auto mb-3 opacity-50" /><p>Aucun membre trouvé</p></div>
                 ) : (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {filteredDirectory.map((m) => (
-                      <div key={m.id} className="bg-white dark:bg-dark-card rounded-xl p-4 flex items-center gap-3 border border-gray-100 dark:border-dark-border">
-                        <div className="w-10 h-10 bg-green/10 rounded-full flex items-center justify-center shrink-0">
-                          {m.photo ? <img src={m.photo} alt="" className="w-full h-full object-cover rounded-full" /> : <User size={18} className="text-green" />}
+                  <>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {filteredDirectory.map((m) => (
+                        <div key={m.id} className="bg-white dark:bg-dark-card rounded-xl p-4 flex items-center gap-3 border border-gray-100 dark:border-dark-border">
+                          <div className="w-10 h-10 bg-green/10 rounded-full flex items-center justify-center shrink-0">
+                            {m.photo ? <img src={m.photo} alt="" className="w-full h-full object-cover rounded-full" /> : <User size={18} className="text-green" />}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-green dark:text-green-light text-sm truncate">{m.full_name}</p>
+                            <p className="text-xs text-gray-400 truncate">{m.profession}{m.city && ` • ${m.city}`}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-green dark:text-green-light text-sm truncate">{m.full_name}</p>
-                          <p className="text-xs text-gray-400 truncate">{m.profession}{m.city && ` • ${m.city}`}</p>
-                        </div>
+                      ))}
+                    </div>
+                    {directoryNextPage && (
+                      <div className="text-center pt-4">
+                        <button
+                          onClick={async () => {
+                            if (!token || !directoryNextPage || directoryLoading) return;
+                            setDirectoryLoading(true);
+                            try {
+                              const url = new URL(directoryNextPage);
+                              const params = url.search;
+                              const r = await memberApi.getDirectory(token, params.replace("?", ""));
+                              setDirectory((prev) => [...prev, ...r.results]);
+                              setDirectoryNextPage(r.next);
+                            } catch {} finally {
+                              setDirectoryLoading(false);
+                            }
+                          }}
+                          disabled={directoryLoading}
+                          className="bg-green text-white px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-green-dark transition-colors disabled:opacity-50"
+                        >
+                          {directoryLoading ? "Chargement..." : "Voir plus de membres"}
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
