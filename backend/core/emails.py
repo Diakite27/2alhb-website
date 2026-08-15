@@ -15,7 +15,7 @@ NEWSLETTER_FOOTER = (
     "Pour vous désabonner : {unsubscribe_url}"
 )
 
-SITE_URL = getattr(settings, "SITE_URL", "https://2alhb.ci")
+SITE_URL = getattr(settings, "SITE_URL", "https://2alhb.com")
 
 
 # === Emails membres ===
