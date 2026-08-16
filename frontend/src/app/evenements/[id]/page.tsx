@@ -9,15 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { api } from "@/lib/api";
 import type { Event } from "@/lib/api";
-
-const categoryLabels: Record<string, { label: string; color: string }> = {
-  gala: { label: "Gala", color: "bg-orange text-white" },
-  sport: { label: "Sport", color: "bg-green text-white" },
-  forum: { label: "Forum", color: "bg-blue-600 text-white" },
-  retrouvailles: { label: "Retrouvailles", color: "bg-purple-600 text-white" },
-  solidarite: { label: "Solidarité", color: "bg-pink-600 text-white" },
-  autre: { label: "Autre", color: "bg-gray-500 text-white" },
-};
+import { getCategoryStyle } from "@/lib/event-utils";
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -60,7 +52,7 @@ export default function EventDetailPage() {
     );
   }
 
-  const cat = categoryLabels[event.category] ?? categoryLabels.autre;
+  const cat = getCategoryStyle(event.category);
   const date = new Date(event.date);
 
   return (

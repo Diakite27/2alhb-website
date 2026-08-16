@@ -1,15 +1,16 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
 import { Calendar, MapPin, ArrowRight, Clock, Users } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import PageHeader from "@/components/PageHeader";
+import AnimSection from "@/components/AnimSection";
 import { api, Event } from "@/lib/api";
 import { useApiList } from "@/lib/hooks";
+import { formatDate } from "@/lib/format";
+import { getCategoryStyle, extractTime } from "@/lib/event-utils";
 
 const FALLBACK_EVENTS: Event[] = [
   {
@@ -91,39 +92,8 @@ const FALLBACK_EVENTS: Event[] = [
   },
 ];
 
-const categoryLabels: Record<string, { label: string; color: string }> = {
-  gala: { label: "Gala", color: "bg-orange text-white" },
-  sport: { label: "Sport", color: "bg-green text-white" },
-  forum: { label: "Forum", color: "bg-blue-600 text-white" },
-  retrouvailles: { label: "Retrouvailles", color: "bg-purple-600 text-white" },
-  solidarite: { label: "Solidarité", color: "bg-pink-600 text-white" },
-};
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
-
-function extractTime(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-}
-
-function AnimSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
-  return (
-    <motion.div ref={ref} initial={{ y: 40, opacity: 0 }} animate={inView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.6, delay }} className={className}>
-      {children}
-    </motion.div>
-  );
-}
-
 function FeaturedEvent({ event, index }: { event: Event; index: number }) {
-  const cat = categoryLabels[event.category] ?? { label: event.category, color: "bg-gray-500 text-white" };
+  const cat = getCategoryStyle(event.category);
   const time = extractTime(event.date);
   return (
     <AnimSection delay={index * 0.1}>
@@ -178,7 +148,7 @@ function FeaturedEvent({ event, index }: { event: Event; index: number }) {
 }
 
 function EventRow({ event, index }: { event: Event; index: number }) {
-  const cat = categoryLabels[event.category] ?? { label: event.category, color: "bg-gray-500 text-white" };
+  const cat = getCategoryStyle(event.category);
   const time = extractTime(event.date);
   return (
     <AnimSection delay={index * 0.05}>
