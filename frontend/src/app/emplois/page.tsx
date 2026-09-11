@@ -32,8 +32,11 @@ const FALLBACK_JOBS: JobOffer[] = [
     location: "Abidjan, Côte d'Ivoire",
     job_type: "cdi",
     sector: "Informatique",
-    description:
-      "Nous recherchons un développeur Full Stack expérimenté pour rejoindre notre équipe produit. Stack : React, Node.js, PostgreSQL. Minimum 3 ans d'expérience.",
+    description: "Nous recherchons un développeur Full Stack expérimenté pour rejoindre notre équipe produit.",
+    missions: "- Développer des applications web et mobile\n- Participer aux code reviews\n- Contribuer à l'architecture technique",
+    profile: "Passionné par le développement, autonome et rigoureux. Bon esprit d'équipe.",
+    skills: "React, Node.js, PostgreSQL, Git, Docker",
+    education: "Bac+5 en Informatique ou équivalent. Minimum 3 ans d'expérience.",
     apply_url: "",
     posted_by_info: null, posted_by_name: "Kouadio Yao Marc — Promotion 1998",
     poster_email: "",
@@ -47,73 +50,16 @@ const FALLBACK_JOBS: JobOffer[] = [
     location: "Abidjan, Côte d'Ivoire",
     job_type: "cdi",
     sector: "Finance",
-    description:
-      "Poste de RAF pour superviser la comptabilité, le contrôle de gestion et la trésorerie. Profil BAC+5 en finance/comptabilité avec 5 ans d'expérience minimum.",
+    description: "Poste de RAF pour superviser la comptabilité, le contrôle de gestion et la trésorerie.",
+    missions: "- Superviser la comptabilité générale\n- Gérer la trésorerie\n- Produire les reportings financiers",
+    profile: "Leader naturel avec excellentes capacités d'analyse et de synthèse.",
+    skills: "Comptabilité, Contrôle de gestion, SAP, Excel avancé",
+    education: "BAC+5 en finance/comptabilité avec 5 ans d'expérience minimum.",
     apply_url: "",
     posted_by_info: null, posted_by_name: "Traoré Aminata — Promotion 2005",
     poster_email: "",
     is_active: true,
     created_at: "2026-04-18",
-  },
-  {
-    id: 3,
-    title: "Stage — Assistant Marketing Digital",
-    company: "Orange CI",
-    location: "Abidjan, Côte d'Ivoire",
-    job_type: "stage",
-    sector: "Marketing",
-    description:
-      "Stage de 6 mois au sein de l'équipe marketing digital. Gestion des réseaux sociaux, création de contenu et analyse de performance. Étudiant en marketing/communication.",
-    apply_url: "",
-    posted_by_info: null, posted_by_name: "Bamba Seydou — Promotion 2010",
-    poster_email: "",
-    is_active: true,
-    created_at: "2026-04-15",
-  },
-  {
-    id: 4,
-    title: "Médecin Généraliste",
-    company: "Clinique Sainte-Anne",
-    location: "Korhogo, Côte d'Ivoire",
-    job_type: "cdi",
-    sector: "Santé",
-    description:
-      "Recrutement d'un médecin généraliste pour renforcer l'équipe médicale. Doctorat en médecine requis, inscription à l'Ordre des médecins obligatoire.",
-    apply_url: "",
-    posted_by_info: null, posted_by_name: "Dr. Coulibaly Fatou — Promotion 1995",
-    poster_email: "",
-    is_active: true,
-    created_at: "2026-04-12",
-  },
-  {
-    id: 5,
-    title: "Consultant Juridique",
-    company: "Cabinet Koné & Associés",
-    location: "Abidjan, Côte d'Ivoire",
-    job_type: "freelance",
-    sector: "Droit",
-    description:
-      "Mission de conseil juridique en droit des affaires et droit OHADA. Profil avocat ou juriste avec 4 ans d'expérience minimum en cabinet.",
-    apply_url: "",
-    posted_by_info: null, posted_by_name: "Me. Koné Ibrahim — Promotion 2000",
-    poster_email: "",
-    is_active: true,
-    created_at: "2026-04-10",
-  },
-  {
-    id: 6,
-    title: "Enseignant de Mathématiques",
-    company: "Lycée HOUPHOUËT-BOIGNY de Korhogo",
-    location: "Korhogo, Côte d'Ivoire",
-    job_type: "cdd",
-    sector: "Éducation",
-    description:
-      "Le lycée recrute un enseignant de mathématiques pour l'année scolaire 2026-2027. Licence en mathématiques minimum, expérience pédagogique souhaitée.",
-    apply_url: "",
-    posted_by_info: null, posted_by_name: "Bureau 2ALHB",
-    poster_email: "",
-    is_active: true,
-    created_at: "2026-04-08",
   },
 ];
 
@@ -146,6 +92,11 @@ function AnimSection({ children, className = "", delay = 0 }: { children: React.
 
 function JobCard({ job }: { job: JobOffer }) {
   const t = typeLabels[job.job_type] ?? { label: job.job_type, color: "bg-gray-500 text-white" };
+  const [expanded, setExpanded] = useState(false);
+  
+  // Determine if job has detailed fields
+  const hasDetails = job.missions || job.profile || job.skills || job.education;
+  
   return (
     <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-6 hover:shadow-lg hover:border-orange/20 transition-all group">
       <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -161,9 +112,7 @@ function JobCard({ job }: { job: JobOffer }) {
       </div>
 
       <h3 className="text-lg font-bold text-green dark:text-green-light mb-2 group-hover:text-orange transition-colors">
-        <Link href={`/emplois/${job.id}`} className="hover:underline">
-          {job.title}
-        </Link>
+        {job.title}
       </h3>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -177,9 +126,54 @@ function JobCard({ job }: { job: JobOffer }) {
         </span>
       </div>
 
-      <p className="text-body text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4">
-        {job.description}
-      </p>
+      {/* Description générale */}
+      {job.description && (
+        <p className="text-body text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4">
+          {job.description}
+        </p>
+      )}
+
+      {/* Détails structurés (expandable) */}
+      {hasDetails && (
+        <>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-sm text-orange font-medium hover:underline mb-4 flex items-center gap-1"
+          >
+            {expanded ? "Masquer les détails" : "Voir les détails"}
+            <span className={`transition-transform ${expanded ? "rotate-180" : ""}`}>▼</span>
+          </button>
+
+          {expanded && (
+            <div className="space-y-4 mb-4 p-4 bg-gray-50 dark:bg-dark-bg rounded-xl">
+              {job.missions && (
+                <div>
+                  <h4 className="text-sm font-semibold text-green dark:text-green-light mb-1">Missions</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{job.missions}</p>
+                </div>
+              )}
+              {job.profile && (
+                <div>
+                  <h4 className="text-sm font-semibold text-green dark:text-green-light mb-1">Profil recherché</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{job.profile}</p>
+                </div>
+              )}
+              {job.skills && (
+                <div>
+                  <h4 className="text-sm font-semibold text-green dark:text-green-light mb-1">Compétences clés</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{job.skills}</p>
+                </div>
+              )}
+              {job.education && (
+                <div>
+                  <h4 className="text-sm font-semibold text-green dark:text-green-light mb-1">Diplôme / Formation</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{job.education}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
 
       {/* Publisher info */}
       <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-dark-bg rounded-xl mb-4">
@@ -240,6 +234,10 @@ export default function EmploisPage() {
     type: "cdi",
     sector: "",
     description: "",
+    missions: "",
+    profile: "",
+    skills: "",
+    education: "",
     posterName: "",
     posterPromotion: "",
     posterEmail: "",
@@ -285,6 +283,10 @@ export default function EmploisPage() {
         job_type: jobForm.type,
         sector: jobForm.sector,
         description: jobForm.description,
+        missions: jobForm.missions,
+        profile: jobForm.profile,
+        skills: jobForm.skills,
+        education: jobForm.education,
         poster_email: jobForm.posterEmail,
         apply_url: jobForm.applyUrl || undefined,
       }, token || undefined);
@@ -443,8 +445,28 @@ export default function EmploisPage() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description du poste *</label>
-                        <textarea name="description" required rows={4} value={jobForm.description} onChange={handleJobChange} className={`${inputClass} resize-none`} placeholder="Décrivez le poste, les compétences requises..." />
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description générale</label>
+                        <textarea name="description" rows={3} value={jobForm.description} onChange={handleJobChange} className={`${inputClass} resize-none`} placeholder="Présentation générale du poste et de l'entreprise..." />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Missions *</label>
+                        <textarea name="missions" required rows={4} value={jobForm.missions} onChange={handleJobChange} className={`${inputClass} resize-none`} placeholder="- Mission 1&#10;- Mission 2&#10;- Mission 3" />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Profil recherché *</label>
+                        <textarea name="profile" required rows={3} value={jobForm.profile} onChange={handleJobChange} className={`${inputClass} resize-none`} placeholder="Qualités et caractéristiques du candidat idéal..." />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Compétences clés *</label>
+                        <textarea name="skills" required rows={3} value={jobForm.skills} onChange={handleJobChange} className={`${inputClass} resize-none`} placeholder="Compétences techniques et soft skills requises..." />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Diplôme / Formation</label>
+                        <textarea name="education" rows={2} value={jobForm.education} onChange={handleJobChange} className={`${inputClass} resize-none`} placeholder="Niveau d'études, diplômes requis, certifications..." />
                       </div>
 
                       <div>

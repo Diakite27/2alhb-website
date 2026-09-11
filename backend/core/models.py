@@ -278,6 +278,8 @@ class BureauMember(models.Model):
     role = models.CharField("Fonction", max_length=200)
     category = models.CharField("Catégorie", max_length=20, choices=CATEGORY_CHOICES)
     photo = models.ImageField("Photo", upload_to="bureau/", blank=True)
+    message = models.TextField("Mot du membre", blank=True, help_text="Message ou mot du membre (affiché dans le modal)")
+    bio = models.TextField("Biographie", blank=True, help_text="Courte biographie du membre")
     order = models.PositiveIntegerField("Ordre d'affichage", default=0)
 
     class Meta:
@@ -317,7 +319,11 @@ class JobOffer(models.Model):
     location = models.CharField("Lieu", max_length=200)
     job_type = models.CharField("Type de contrat", max_length=10, choices=TYPE_CHOICES)
     sector = models.CharField("Secteur", max_length=100)
-    description = models.TextField("Description")
+    description = models.TextField("Description générale", blank=True, help_text="Présentation générale du poste")
+    missions = models.TextField("Missions", blank=True, help_text="Liste des missions et responsabilités")
+    profile = models.TextField("Profil recherché", blank=True, help_text="Profil et qualités attendus")
+    skills = models.TextField("Compétences clés", blank=True, help_text="Compétences techniques et soft skills requises")
+    education = models.TextField("Diplôme / Formation", blank=True, help_text="Niveau d'études et formations requises")
     apply_url = models.URLField("Lien pour postuler", blank=True)
     posted_by = models.ForeignKey(
         Member, on_delete=models.SET_NULL, null=True, blank=True,

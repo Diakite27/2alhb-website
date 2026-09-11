@@ -238,7 +238,7 @@ class BureauMemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BureauMember
-        fields = ["id", "display_name", "initials", "role", "category", "photo_url", "order"]
+        fields = ["id", "display_name", "initials", "role", "category", "photo_url", "message", "bio", "order"]
 
     def get_photo_url(self, obj):
         request = self.context.get("request")
@@ -259,7 +259,8 @@ class JobOfferSerializer(serializers.ModelSerializer):
         model = JobOffer
         fields = [
             "id", "title", "company", "location", "job_type", "sector",
-            "description", "apply_url", "posted_by_name", "posted_by_info",
+            "description", "missions", "profile", "skills", "education",
+            "apply_url", "posted_by_name", "posted_by_info",
             "poster_email", "is_active", "created_at",
         ]
 
@@ -292,7 +293,8 @@ class JobOfferCreateSerializer(serializers.ModelSerializer):
         model = JobOffer
         fields = [
             "title", "company", "location", "job_type", "sector",
-            "description", "apply_url", "poster_name", "poster_email",
+            "description", "missions", "profile", "skills", "education",
+            "apply_url", "poster_name", "poster_email",
         ]
 
 

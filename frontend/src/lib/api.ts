@@ -122,6 +122,8 @@ export interface BureauMember {
   role: string;
   category: "direction" | "commission";
   photo_url: string | null;
+  message: string;
+  bio: string;
   order: number;
 }
 
@@ -133,6 +135,10 @@ export interface JobOffer {
   job_type: string;
   sector: string;
   description: string;
+  missions: string;
+  profile: string;
+  skills: string;
+  education: string;
   apply_url: string;
   posted_by_name: string;
   posted_by_info: {
