@@ -116,13 +116,25 @@ def notify_member_approval_change(sender, instance, **kwargs):
 def newsletter_notify_new_event(sender, instance, created, **kwargs):
     """Envoie un email aux abonnés newsletter quand un événement est publié."""
     if created and instance.is_published:
-        from .emails import send_newsletter_event
-        send_newsletter_event(instance)
+        try:
+            from .emails import send_newsletter_event
+            send_newsletter_event(instance)
+        except Exception as e:
+            # Log l'erreur mais ne bloque pas la sauvegarde de l'événement
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur lors de l'envoi de la newsletter pour l'événement '{instance.title}': {e}")
 
 
 @receiver(post_save, sender=NewsArticle)
 def newsletter_notify_new_article(sender, instance, created, **kwargs):
     """Envoie un email aux abonnés newsletter quand un article est publié."""
     if created and instance.is_published:
-        from .emails import send_newsletter_news
-        send_newsletter_news(instance)
+        try:
+            from .emails import send_newsletter_news
+            send_newsletter_news(instance)
+        except Exception as e:
+            # Log l'erreur mais ne bloque pas la sauvegarde de l'article
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur lors de l'envoi de la newsletter pour l'article '{instance.title}': {e}")
