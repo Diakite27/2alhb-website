@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { Newspaper, ArrowRight, Clock } from "lucide-react";
 import Link from "next/link";
 import TiltCard from "./TiltCard";
@@ -12,8 +11,6 @@ import { formatDate } from "@/lib/format";
 const FALLBACK_NEWS: NewsArticle[] = [];
 
 export default function News() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { data: articles, loading } = useApiList(() => api.getNews(), FALLBACK_NEWS);
 
   // Ne rien afficher pendant le chargement ou s'il n'y a pas d'articles
@@ -26,9 +23,9 @@ export default function News() {
     <section id="news" className="py-14 lg:py-24 bg-white dark:bg-dark-bg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          ref={ref}
           initial={{ y: 30, opacity: 0 }}
-          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
@@ -46,7 +43,8 @@ export default function News() {
             <motion.div
               key={article.id}
               initial={{ y: 40, opacity: 0 }}
-              animate={isInView ? { y: 0, opacity: 1 } : {}}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.6, delay: i * 0.15 }}
             >
               <TiltCard className="bg-gray-50 dark:bg-dark-card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group h-full flex flex-col">
@@ -92,7 +90,8 @@ export default function News() {
         {articles.length > 3 && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ delay: 0.6 }}
             className="text-center mt-10"
           >

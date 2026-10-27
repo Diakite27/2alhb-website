@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import type { FAQItem } from "@/lib/api";
@@ -75,17 +75,15 @@ function FAQCard({ item, index }: { item: FAQItem; index: number }) {
 }
 
 export default function FAQ() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-60px" });
   const { data: faqs } = useApiList(() => api.getFAQ(), FALLBACK_FAQ);
 
   return (
     <section className="py-16 bg-gray-50 dark:bg-dark-card">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          ref={ref}
           initial={{ y: 30, opacity: 0 }}
-          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >

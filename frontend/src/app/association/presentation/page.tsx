@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion } from "framer-motion";
 import {
   Heart,
   GraduationCap,
@@ -113,13 +112,11 @@ function AnimSection({
   className?: string;
   delay?: number;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
   return (
     <motion.div
-      ref={ref}
       initial={{ y: 40, opacity: 0 }}
-      animate={inView ? { y: 0, opacity: 1 } : {}}
+      whileInView={{ y: 0, opacity: 1 }}
+      viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.4, delay }}
       className={className}
     >

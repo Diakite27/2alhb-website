@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { Send, Mail, MapPin, CheckCircle } from "lucide-react";
 import { api, AssociationInfo } from "@/lib/api";
 import { useApiData } from "@/lib/hooks";
@@ -25,8 +25,6 @@ export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { data: info } = useApiData(() => api.getInfo(), FALLBACK_INFO);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -54,9 +52,9 @@ export default function Contact() {
     <section id="contact" className="py-14 lg:py-20 bg-white dark:bg-dark-bg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          ref={ref}
           initial={{ y: 30, opacity: 0 }}
-          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
@@ -70,7 +68,8 @@ export default function Contact() {
           {/* Info */}
           <motion.div
             initial={{ x: -40, opacity: 0 }}
-            animate={isInView ? { x: 0, opacity: 1 } : {}}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="space-y-8"
           >
@@ -112,7 +111,8 @@ export default function Contact() {
           {/* Form */}
           <motion.div
             initial={{ x: 40, opacity: 0 }}
-            animate={isInView ? { x: 0, opacity: 1 } : {}}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             {status === "success" ? (

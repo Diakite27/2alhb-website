@@ -59,7 +59,7 @@ function StatCard({
   return (
     <motion.div
       initial={{ y: 30, opacity: 0 }}
-      animate={started ? { y: 0, opacity: 1 } : {}}
+      animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, delay: index * 0.15 }}
       className="flex flex-col items-center gap-1 sm:gap-2 p-3 sm:p-6 bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl"
     >
@@ -75,7 +75,7 @@ function StatCard({
 
 export default function CounterStats() {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
   const { data: stats } = useApiData(() => api.getStats(), FALLBACK_STATS);
 
   return (

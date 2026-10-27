@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion } from "framer-motion";
 import {
   Heart,
   GraduationCap,
@@ -51,16 +50,13 @@ const objectives = [
 ];
 
 export default function About() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-
   return (
     <section id="about" className="py-12 lg:py-16 bg-gray-50 dark:bg-dark-bg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          ref={ref}
           initial={{ y: 30, opacity: 0 }}
-          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-14"
         >
@@ -79,7 +75,8 @@ export default function About() {
             <motion.div
               key={obj.title}
               initial={{ y: 40, opacity: 0 }}
-              animate={isInView ? { y: 0, opacity: 1 } : {}}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.35, delay: 0.05 + i * 0.06 }}
               className="rounded-2xl p-7 group cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white dark:bg-dark-card border border-gray-100 dark:border-dark-border"
             >

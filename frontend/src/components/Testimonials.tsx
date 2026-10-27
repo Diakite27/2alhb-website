@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Quote, ChevronLeft, ChevronRight, User } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Testimonial } from "@/lib/api";
@@ -12,8 +12,6 @@ export default function Testimonials() {
   const { data: testimonials } = useApiList(() => api.getTestimonials(), FALLBACK_TESTIMONIALS as unknown as Testimonial[]);
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   const navigate = (dir: number) => {
     setDirection(dir);
@@ -44,9 +42,9 @@ export default function Testimonials() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
-          ref={ref}
           initial={{ y: 30, opacity: 0 }}
-          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >

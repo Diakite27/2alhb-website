@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { UserPlus, ArrowRight, Users, Shield, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -31,8 +30,6 @@ const highlights = [
 ];
 
 export default function RegisterForm() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { data: info } = useApiData(() => api.getInfo(), FALLBACK_INFO);
 
   return (
@@ -43,9 +40,9 @@ export default function RegisterForm() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left — text */}
           <motion.div
-            ref={ref}
             initial={{ y: 30, opacity: 0 }}
-            animate={isInView ? { y: 0, opacity: 1 } : {}}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6 }}
           >
             <Image
@@ -87,7 +84,8 @@ export default function RegisterForm() {
           {/* Right — pricing cards */}
           <motion.div
             initial={{ y: 30, opacity: 0 }}
-            animate={isInView ? { y: 0, opacity: 1 } : {}}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="space-y-4"
           >

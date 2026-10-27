@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { Camera, ArrowRight, Images } from "lucide-react";
 import Link from "next/link";
 import { galleryApi, GalleryAlbum } from "@/lib/api";
@@ -10,8 +9,6 @@ import { useApiList } from "@/lib/hooks";
 const FALLBACK_ALBUMS: GalleryAlbum[] = [];
 
 export default function Gallery() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { data: albums, loading } = useApiList(() => galleryApi.getAlbums(), FALLBACK_ALBUMS);
 
   // Ne rien afficher pendant le chargement ou s'il n'y a pas d'albums
@@ -24,9 +21,9 @@ export default function Gallery() {
     <section id="gallery" className="py-14 lg:py-24 bg-gray-50 dark:bg-dark-card">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          ref={ref}
           initial={{ y: 30, opacity: 0 }}
-          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
@@ -44,7 +41,8 @@ export default function Gallery() {
             <motion.div
               key={album.id}
               initial={{ y: 40, opacity: 0 }}
-              animate={isInView ? { y: 0, opacity: 1 } : {}}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
             >
               <Link
@@ -87,7 +85,8 @@ export default function Gallery() {
 
         <motion.div
           initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ delay: 0.5 }}
           className="text-center mt-10"
         >

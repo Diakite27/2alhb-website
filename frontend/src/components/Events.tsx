@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import TiltCard from "./TiltCard";
@@ -53,17 +52,15 @@ function formatDate(dateStr: string) {
 }
 
 export default function Events() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { data: events } = useApiList(() => api.getEvents("is_featured=true"), FALLBACK_EVENTS);
 
   return (
     <section id="events" className="py-14 lg:py-24 bg-gray-50 dark:bg-dark-card">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          ref={ref}
           initial={{ y: 30, opacity: 0 }}
-          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
@@ -81,7 +78,8 @@ export default function Events() {
             <motion.div
               key={event.id}
               initial={{ y: 40, opacity: 0 }}
-              animate={isInView ? { y: 0, opacity: 1 } : {}}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.6, delay: i * 0.15 }}
             >
               <TiltCard className="bg-white dark:bg-dark-bg rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">

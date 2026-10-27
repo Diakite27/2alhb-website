@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useMemo } from "react";
-import { motion, useInView } from "framer-motion";
+import { useMemo } from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { api } from "@/lib/api";
 import type { Partner } from "@/lib/api";
@@ -13,8 +13,6 @@ const FALLBACK_PARTNERS: Partner[] = [
 ];
 
 export default function Partners() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
   const { data: partners } = useApiList(() => api.getPartners(), FALLBACK_PARTNERS);
 
   const marqueePartners = useMemo(
@@ -26,9 +24,9 @@ export default function Partners() {
     <section className="py-16 lg:py-20 bg-white dark:bg-dark-bg overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          ref={ref}
           initial={{ y: 30, opacity: 0 }}
-          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
