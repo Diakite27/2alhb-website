@@ -1,9 +1,12 @@
+import logging
 import secrets
 
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from .models import Event, JobOffer, MemberDocument, Member, NewsArticle, Notification
+
+logger = logging.getLogger(__name__)
 
 NOTIFICATION_BATCH_SIZE = 500
 
@@ -28,47 +31,56 @@ def _bulk_notify(members_qs, title, message, notification_type, link):
 def notify_new_event(sender, instance, created, **kwargs):
     """Notifie tous les membres approuvés quand un événement est publié."""
     if created and instance.is_published:
-        members = Member.objects.filter(is_approved=True, is_active=True)
-        date_str = instance.date.strftime('%d/%m/%Y') if instance.date else "Date à confirmer"
-        _bulk_notify(
-            members,
-            title=f"Nouvel événement : {instance.title}",
-            message=f"{instance.title} le {date_str} à {instance.location}.",
-            notification_type="event",
-            link="/evenements",
-        )
+        try:
+            members = Member.objects.filter(is_approved=True, is_active=True)
+            date_str = instance.date.strftime('%d/%m/%Y') if instance.date else "Date à confirmer"
+            _bulk_notify(
+                members,
+                title=f"Nouvel événement : {instance.title}",
+                message=f"{instance.title} le {date_str} à {instance.location}.",
+                notification_type="event",
+                link="/evenements",
+            )
+        except Exception as e:
+            logger.error(f"Erreur lors de la notification pour l'événement '{instance.title}': {e}")
 
 
 @receiver(post_save, sender=JobOffer)
 def notify_new_job(sender, instance, created, **kwargs):
     """Notifie tous les membres approuvés quand une offre d'emploi est publiée."""
     if created and instance.is_active:
-        members = Member.objects.filter(is_approved=True, is_active=True)
-        _bulk_notify(
-            members,
-            title=f"Nouvelle offre : {instance.title}",
-            message=f"{instance.title} chez {instance.company} ({instance.location}).",
-            notification_type="job",
-            link="/emplois",
-        )
+        try:
+            members = Member.objects.filter(is_approved=True, is_active=True)
+            _bulk_notify(
+                members,
+                title=f"Nouvelle offre : {instance.title}",
+                message=f"{instance.title} chez {instance.company} ({instance.location}).",
+                notification_type="job",
+                link="/emplois",
+            )
+        except Exception as e:
+            logger.error(f"Erreur lors de la notification pour l'offre '{instance.title}': {e}")
 
 
 @receiver(post_save, sender=MemberDocument)
 def notify_new_document(sender, instance, created, **kwargs):
     """Notifie les membres quand un document est ajouté."""
     if created:
-        if instance.is_adherent_only:
-            members = Member.objects.filter(is_approved=True, is_active=True, membership_type="adherent")
-        else:
-            members = Member.objects.filter(is_approved=True, is_active=True)
+        try:
+            if instance.is_adherent_only:
+                members = Member.objects.filter(is_approved=True, is_active=True, membership_type="adherent")
+            else:
+                members = Member.objects.filter(is_approved=True, is_active=True)
 
-        _bulk_notify(
-            members,
-            title=f"Nouveau document : {instance.title}",
-            message=f"Un nouveau document ({instance.get_category_display()}) est disponible dans votre espace membre.",
-            notification_type="document",
-            link="/espace-membre",
-        )
+            _bulk_notify(
+                members,
+                title=f"Nouveau document : {instance.title}",
+                message=f"Un nouveau document ({instance.get_category_display()}) est disponible dans votre espace membre.",
+                notification_type="document",
+                link="/espace-membre",
+            )
+        except Exception as e:
+            logger.error(f"Erreur lors de la notification pour le document '{instance.title}': {e}")
 
 
 @receiver(pre_save, sender=Member)
@@ -94,8 +106,11 @@ def notify_member_approval_change(sender, instance, **kwargs):
             notification_type="general",
             link="/espace-membre",
         )
-        from .emails import send_welcome_email
-        send_welcome_email(instance, temp_password)
+        try:
+            from .emails import send_welcome_email
+            send_welcome_email(instance, temp_password)
+        except Exception as e:
+            logger.error(f"Erreur lors de l'envoi de l'email de bienvenue à '{instance.email}': {e}")
 
     # Was approved, now is revoked
     elif old.is_approved and not instance.is_approved:
@@ -106,8 +121,11 @@ def notify_member_approval_change(sender, instance, **kwargs):
             notification_type="general",
             link="/contact",
         )
-        from .emails import send_membership_revoked_email
-        send_membership_revoked_email(instance)
+        try:
+            from .emails import send_membership_revoked_email
+            send_membership_revoked_email(instance)
+        except Exception as e:
+            logger.error(f"Erreur lors de l'envoi de l'email de révocation à '{instance.email}': {e}")
 
 
 # --- Newsletter : envoi aux abonnés ---
@@ -121,8 +139,6 @@ def newsletter_notify_new_event(sender, instance, created, **kwargs):
             send_newsletter_event(instance)
         except Exception as e:
             # Log l'erreur mais ne bloque pas la sauvegarde de l'événement
-            import logging
-            logger = logging.getLogger(__name__)
             logger.error(f"Erreur lors de l'envoi de la newsletter pour l'événement '{instance.title}': {e}")
 
 
@@ -135,6 +151,4 @@ def newsletter_notify_new_article(sender, instance, created, **kwargs):
             send_newsletter_news(instance)
         except Exception as e:
             # Log l'erreur mais ne bloque pas la sauvegarde de l'article
-            import logging
-            logger = logging.getLogger(__name__)
             logger.error(f"Erreur lors de l'envoi de la newsletter pour l'article '{instance.title}': {e}")

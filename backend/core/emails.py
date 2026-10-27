@@ -5,17 +5,47 @@ Utilitaires d'envoi d'emails pour la 2ALHB.
 import logging
 
 from django.conf import settings
-from django.core.mail import send_mail, send_mass_mail
+from django.core.mail import get_connection, send_mail, send_mass_mail
 
 logger = logging.getLogger(__name__)
 
-NEWSLETTER_FOOTER = (
-    "\n\n---\n"
-    "Vous recevez cet email car vous êtes inscrit à la newsletter de la 2ALHB.\n"
-    "Pour vous désabonner : {unsubscribe_url}"
-)
+
+def _get_info_connection():
+    """
+    Ouvre une connexion SMTP sur le compte "infos@" dédié aux communications
+    (événements, articles, newsletters).
+
+    Si le backend n'est pas SMTP (ex: console en local), on retourne None pour
+    laisser Django utiliser la connexion par défaut.
+    """
+    if "smtp" not in settings.EMAIL_BACKEND:
+        return None
+    return get_connection(
+        backend="django.core.mail.backends.smtp.EmailBackend",
+        host=settings.INFO_EMAIL_HOST,
+        port=settings.INFO_EMAIL_PORT,
+        username=settings.INFO_EMAIL_HOST_USER,
+        password=settings.INFO_EMAIL_HOST_PASSWORD,
+        use_tls=settings.INFO_EMAIL_USE_TLS,
+        use_ssl=settings.INFO_EMAIL_USE_SSL,
+    )
 
 SITE_URL = getattr(settings, "SITE_URL", "https://2alhb.com")
+
+# Signature officielle de la 2ALHB, ajoutée à la fin de chaque email.
+SIGNATURE = (
+    "\n\n"
+    "Fraternellement,\n"
+    "Le Bureau de la 2ALHB\n"
+    "Amicale des Anciens du Lycée HOUPHOUËT-BOIGNY de Korhogo\n"
+    f"{SITE_URL}"
+)
+
+NEWSLETTER_FOOTER = (
+    "\n\n---\n"
+    "Vous recevez cet email car vous êtes inscrit aux communications de la 2ALHB.\n"
+    "Pour vous désabonner : {unsubscribe_url}"
+)
 
 
 # === Emails membres ===
@@ -51,10 +81,8 @@ def send_welcome_email(member, password=None):
             f"  • L'annuaire des membres\n"
             f"  • Les offres d'emploi\n"
             f"  • Les documents de l'association\n"
-            f"  • Les notifications et événements\n\n"
-            f"Fraternellement,\n"
-            f"Le Bureau de la 2ALHB\n"
-            f"Amicale des Anciens du Lycée Houphouët-Boigny de Korhogo"
+            f"  • Les notifications et événements"
+            f"{SIGNATURE}"
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[member.email],
@@ -105,10 +133,8 @@ def send_membership_revoked_email(member):
             f"Nous vous informons que votre adhésion à la 2ALHB n'est plus active. "
             f"Vous n'avez plus accès aux services réservés aux membres de l'amicale.\n\n"
             f"Si vous pensez qu'il s'agit d'une erreur ou si vous souhaitez obtenir "
-            f"des informations complémentaires, nous vous invitons à contacter le bureau.\n\n"
-            f"Fraternellement,\n"
-            f"Le Bureau de la 2ALHB\n"
-            f"Amicale des Anciens du Lycée Houphouët-Boigny de Korhogo"
+            f"des informations complémentaires, nous vous invitons à contacter le bureau."
+            f"{SIGNATURE}"
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[member.email],
@@ -116,7 +142,7 @@ def send_membership_revoked_email(member):
     )
 
 
-# === Newsletter : envoi aux abonnés ===
+# === Communications : envoi aux abonnés newsletter ET aux membres ===
 
 
 def _get_active_subscriber_emails():
@@ -128,45 +154,93 @@ def _get_active_subscriber_emails():
     )
 
 
-def _build_newsletter_footer():
-    """Construit le pied de page newsletter avec le lien de désabonnement."""
-    return NEWSLETTER_FOOTER.format(unsubscribe_url=f"{SITE_URL}/desabonnement")
+def _get_active_member_emails():
+    """Retourne les emails des membres approuvés et actifs (email renseigné)."""
+    from .models import Member
+
+    return list(
+        Member.objects.filter(is_approved=True, is_active=True)
+        .exclude(email="")
+        .values_list("email", flat=True)
+    )
+
+
+def _get_all_recipient_emails():
+    """
+    Réunit abonnés newsletter + membres approuvés, sans doublon.
+
+    La casse de l'email est normalisée (minuscules) pour éviter les doublons
+    du type 'Jean@x.com' / 'jean@x.com'.
+    """
+    emails = {}
+    for email in _get_active_subscriber_emails() + _get_active_member_emails():
+        if not email:
+            continue
+        key = email.strip().lower()
+        if key and key not in emails:
+            emails[key] = email.strip()
+    return list(emails.values())
+
+
+def _build_newsletter_footer(email=None):
+    """Construit le pied de page avec le lien de désabonnement.
+
+    Si un email est fourni, il est ajouté en paramètre pour préremplir le
+    formulaire de désabonnement côté frontend.
+    """
+    from urllib.parse import quote
+
+    url = f"{SITE_URL}/desabonnement"
+    if email:
+        url = f"{url}?email={quote(email)}"
+    return NEWSLETTER_FOOTER.format(unsubscribe_url=url)
 
 
 def _send_to_subscribers(subject, body, recipient_emails=None):
     """
-    Envoi groupé d'un email newsletter aux abonnés.
+    Envoi groupé d'une communication 2ALHB.
 
     Args:
         subject: Objet de l'email (le préfixe [2ALHB] est ajouté automatiquement).
-        body: Corps du message (le footer est ajouté automatiquement).
-        recipient_emails: Liste d'emails. Si None, envoie à tous les abonnés actifs.
+        body: Corps du message (la signature et le footer sont ajoutés automatiquement).
+        recipient_emails: Liste d'emails. Si None, envoie à tous les abonnés
+            newsletter actifs ET aux membres approuvés (dédupliqués).
 
     Returns:
         Nombre d'emails envoyés.
     """
     if recipient_emails is None:
-        recipient_emails = _get_active_subscriber_emails()
+        recipient_emails = _get_all_recipient_emails()
 
     if not recipient_emails:
         return 0
 
     full_subject = f"[2ALHB] {subject}"
-    full_message = f"{body}{_build_newsletter_footer()}"
 
+    # Les communications partent depuis infos@ (compte dédié).
+    from_email = settings.INFO_FROM_EMAIL
+
+    # Message personnalisé par destinataire : le lien de désabonnement
+    # contient son email pour préremplir le formulaire.
     email_tuples = [
-        (full_subject, full_message, settings.DEFAULT_FROM_EMAIL, [email])
+        (
+            full_subject,
+            f"{body}{SIGNATURE}{_build_newsletter_footer(email)}",
+            from_email,
+            [email],
+        )
         for email in recipient_emails
     ]
 
-    send_mass_mail(email_tuples, fail_silently=True)
-    logger.info("Newsletter '%s' envoyée à %d abonné(s).", subject, len(email_tuples))
+    connection = _get_info_connection()
+    send_mass_mail(email_tuples, fail_silently=True, connection=connection)
+    logger.info("Communication '%s' envoyée à %d destinataire(s) depuis %s.", subject, len(email_tuples), from_email)
 
     return len(email_tuples)
 
 
 def send_newsletter_event(event):
-    """Envoie un email aux abonnés newsletter quand un événement est publié."""
+    """Envoie un email aux abonnés et aux membres quand un événement est publié."""
     date_str = event.date.strftime("%d/%m/%Y à %H:%M") if event.date else "Date à confirmer"
 
     body = (
@@ -176,24 +250,20 @@ def send_newsletter_event(event):
         f"📍 {event.location}\n"
         f"🕐 {date_str}\n\n"
         f"{event.description[:300]}\n\n"
-        f"Rendez-vous sur le site pour plus de détails : {SITE_URL}/evenements\n\n"
-        f"Fraternellement,\n"
-        f"Le Bureau de la 2ALHB"
+        f"Rendez-vous sur le site pour plus de détails : {SITE_URL}/evenements"
     )
 
     return _send_to_subscribers(subject=f"Nouvel événement : {event.title}", body=body)
 
 
 def send_newsletter_news(article):
-    """Envoie un email aux abonnés newsletter quand un article est publié."""
+    """Envoie un email aux abonnés et aux membres quand un article est publié."""
     body = (
         f"Bonjour,\n\n"
         f"Un nouvel article a été publié par la 2ALHB :\n\n"
         f"📰 {article.title}\n\n"
         f"{article.excerpt}\n\n"
-        f"Lire la suite sur le site : {SITE_URL}/actualites/{article.slug}\n\n"
-        f"Fraternellement,\n"
-        f"Le Bureau de la 2ALHB"
+        f"Lire la suite sur le site : {SITE_URL}/actualites/{article.slug}"
     )
 
     return _send_to_subscribers(subject=article.title, body=body)

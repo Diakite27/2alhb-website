@@ -379,6 +379,12 @@ export const newsletterApi = {
       method: "POST",
       body: JSON.stringify({ email }),
     }),
+
+  unsubscribe: (email: string) =>
+    fetchAPI("/newsletter/unsubscribe/", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
 };
 
 // --- Gallery ---

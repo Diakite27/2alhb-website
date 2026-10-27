@@ -140,6 +140,7 @@ EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.Em
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 _default_from = os.getenv("DEFAULT_FROM_EMAIL", "2ALHB <contact@2alhb.com>")
@@ -147,6 +148,19 @@ if _default_from and "<" not in _default_from and "@" in _default_from:
     _default_from = f"2ALHB <{_default_from}>"
 DEFAULT_FROM_EMAIL = _default_from
 EMAIL_SUBJECT_PREFIX = os.getenv("EMAIL_SUBJECT_PREFIX", "[2ALHB] ")
+
+# Second compte email dédié aux communications (événements, articles, newsletters).
+# Si non configuré, on retombe sur le compte principal ci-dessus.
+INFO_EMAIL_HOST = os.getenv("INFO_EMAIL_HOST", EMAIL_HOST)
+INFO_EMAIL_PORT = int(os.getenv("INFO_EMAIL_PORT", str(EMAIL_PORT)))
+INFO_EMAIL_USE_TLS = os.getenv("INFO_EMAIL_USE_TLS", str(EMAIL_USE_TLS)) in ("True", "true", "1")
+INFO_EMAIL_USE_SSL = os.getenv("INFO_EMAIL_USE_SSL", str(EMAIL_USE_SSL)) in ("True", "true", "1")
+INFO_EMAIL_HOST_USER = os.getenv("INFO_EMAIL_HOST_USER", EMAIL_HOST_USER)
+INFO_EMAIL_HOST_PASSWORD = os.getenv("INFO_EMAIL_HOST_PASSWORD", EMAIL_HOST_PASSWORD)
+_info_from = os.getenv("INFO_FROM_EMAIL", DEFAULT_FROM_EMAIL)
+if _info_from and "<" not in _info_from and "@" in _info_from:
+    _info_from = f"2ALHB <{_info_from}>"
+INFO_FROM_EMAIL = _info_from
 
 # URL publique du site (utilisée dans les emails newsletter)
 SITE_URL = os.getenv("SITE_URL", "https://2alhb.com")
