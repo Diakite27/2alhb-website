@@ -407,6 +407,19 @@ class AssociationInfo(models.Model):
     adhesion_fee = models.PositiveIntegerField("Droit d'adhésion (FCFA)", default=5000)
     monthly_fee = models.PositiveIntegerField("Cotisation mensuelle (FCFA)", default=5000)
     annual_fee = models.PositiveIntegerField("Cotisation annuelle (FCFA)", default=60000)
+    # Dons par Mobile Money — chaque moyen est activable/désactivable et a son numéro.
+    orange_money_enabled = models.BooleanField("Orange Money activé", default=True)
+    orange_money_number = models.CharField(
+        "Numéro Orange Money", max_length=30, blank=True,
+        default="+225 07 07 442 080",
+        help_text="Numéro à créditer pour les dons via Orange Money."
+    )
+    wave_enabled = models.BooleanField("Wave activé", default=True)
+    wave_number = models.CharField(
+        "Numéro Wave", max_length=30, blank=True,
+        default="+225 07 07 442 080",
+        help_text="Numéro à créditer pour les dons via Wave."
+    )
     welcome_email_subject = models.CharField(
         "Objet email d'accueil", max_length=200,
         default="Bienvenue dans la grande famille 2ALHB !",
@@ -645,3 +658,43 @@ class OfficialDocumentArticle(models.Model):
 
     def __str__(self):
         return self.content[:80]
+
+
+class Donation(models.Model):
+    """Don déclaré par un donateur via Mobile Money (Orange Money / Wave)."""
+
+    METHOD_CHOICES = [
+        ("orange_money", "Orange Money"),
+        ("wave", "Wave"),
+    ]
+    STATUS_CHOICES = [
+        ("pending", "En attente de vérification"),
+        ("confirmed", "Confirmé"),
+        ("rejected", "Rejeté"),
+    ]
+
+    full_name = models.CharField("Nom complet", max_length=200)
+    email = models.EmailField("Email")
+    phone = models.CharField(
+        "Téléphone émetteur", max_length=30, blank=True,
+        help_text="Numéro ayant servi au transfert"
+    )
+    method = models.CharField("Moyen utilisé", max_length=15, choices=METHOD_CHOICES)
+    amount = models.PositiveIntegerField("Montant envoyé (FCFA)")
+    transaction_reference = models.CharField(
+        "Référence de transaction", max_length=100, blank=True,
+        help_text="ID du SMS de confirmation"
+    )
+    message = models.TextField("Message", blank=True)
+    status = models.CharField(
+        "Statut", max_length=15, choices=STATUS_CHOICES, default="pending"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Don"
+        verbose_name_plural = "Dons"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.full_name} — {self.amount} FCFA ({self.get_method_display()})"

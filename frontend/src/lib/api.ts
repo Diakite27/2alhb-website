@@ -50,6 +50,20 @@ export interface AssociationInfo {
   adhesion_fee: number;
   monthly_fee: number;
   annual_fee: number;
+  orange_money_enabled: boolean;
+  orange_money_number: string;
+  wave_enabled: boolean;
+  wave_number: string;
+}
+
+export interface DonationInput {
+  full_name: string;
+  email: string;
+  phone?: string;
+  method: "orange_money" | "wave";
+  amount: number;
+  transaction_reference?: string;
+  message?: string;
 }
 
 export interface MemberPublic {
@@ -282,6 +296,10 @@ export const api = {
   // Contact
   contact: (data: Record<string, unknown>) =>
     fetchAPI("/contact/", { method: "POST", body: JSON.stringify(data) }),
+
+  // Dons (Mobile Money)
+  donate: (data: DonationInput) =>
+    fetchAPI("/donations/", { method: "POST", body: JSON.stringify(data) }),
 };
 
 

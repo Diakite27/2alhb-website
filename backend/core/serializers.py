@@ -11,6 +11,7 @@ from .models import (
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
     NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
     OfficialDocument, OfficialDocumentSection, OfficialDocumentArticle,
+    Donation,
 )
 
 ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"]
@@ -323,7 +324,31 @@ class AssociationInfoSerializer(serializers.ModelSerializer):
             "name", "full_name", "slogan", "email", "phone", "address",
             "facebook_url", "linkedin_url", "whatsapp",
             "adhesion_fee", "monthly_fee", "annual_fee",
+            "orange_money_enabled", "orange_money_number",
+            "wave_enabled", "wave_number",
         ]
+
+
+class DonationCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Donation
+        fields = [
+            "full_name", "email", "phone", "method",
+            "amount", "transaction_reference", "message",
+        ]
+
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Le montant doit être supérieur à zéro.")
+        return value
+
+    def validate_method(self, value):
+        info = AssociationInfo.load()
+        if value == "orange_money" and not info.orange_money_enabled:
+            raise serializers.ValidationError("Les dons via Orange Money ne sont pas disponibles pour le moment.")
+        if value == "wave" and not info.wave_enabled:
+            raise serializers.ValidationError("Les dons via Wave ne sont pas disponibles pour le moment.")
+        return value
 
 
 # --- Aggregations ---

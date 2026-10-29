@@ -34,6 +34,7 @@ export const NAV_LINKS: NavItem[] = [
   { label: "Actualités", href: "/actualites" },
   { label: "Galerie", href: "/galerie" },
   { label: "Emplois", href: "/emplois" },
+  { label: "Faire un don", href: "/don" },
   { label: "Contact", href: "/#contact" },
 ];
 

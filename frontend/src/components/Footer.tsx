@@ -22,6 +22,10 @@ const FALLBACK_INFO: AssociationInfo = {
   adhesion_fee: 5000,
   monthly_fee: 5000,
   annual_fee: 60000,
+  orange_money_enabled: true,
+  orange_money_number: "+225 07 07 442 080",
+  wave_enabled: true,
+  wave_number: "+225 07 07 442 080",
 };
 
 const FALLBACK_EVENTS: Event[] = [

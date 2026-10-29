@@ -7,6 +7,7 @@ from .models import (
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
     NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
     OfficialDocument, OfficialDocumentSection, OfficialDocumentArticle,
+    Donation,
 )
 
 admin.site.site_header = "Administration de 2ALHB"
@@ -237,6 +238,14 @@ class AssociationInfoAdmin(admin.ModelAdmin):
         ("Tarifs", {
             "fields": ("adhesion_fee", "monthly_fee", "annual_fee"),
         }),
+        ("Dons — Orange Money", {
+            "fields": ("orange_money_enabled", "orange_money_number"),
+            "description": "Activez Orange Money et renseignez le numéro à créditer. Si désactivé, l'option n'apparaît pas sur la page de don.",
+        }),
+        ("Dons — Wave", {
+            "fields": ("wave_enabled", "wave_number"),
+            "description": "Activez Wave et renseignez le numéro à créditer. Si désactivé, l'option n'apparaît pas sur la page de don.",
+        }),
         ("Email d'accueil (personnalisable)", {
             "fields": ("welcome_email_subject", "welcome_email_body"),
             "description": "Ce message est envoyé en complément du mail technique contenant les identifiants de connexion. Variables : {prenom}, {nom}, {promotion}, {type_membre}",
@@ -419,3 +428,23 @@ class OfficialDocumentSectionAdmin(admin.ModelAdmin):
     list_filter = ["document"]
     inlines = [OfficialDocumentArticleInline]
     ordering = ["document", "order", "number"]
+
+
+@admin.register(Donation)
+class DonationAdmin(admin.ModelAdmin):
+    list_display = ["full_name", "amount", "method", "status", "transaction_reference", "created_at"]
+    list_filter = ["status", "method", "created_at"]
+    search_fields = ["full_name", "email", "phone", "transaction_reference"]
+    date_hierarchy = "created_at"
+    readonly_fields = ["created_at"]
+    actions = ["mark_confirmed", "mark_rejected"]
+
+    @admin.action(description="✅ Marquer comme confirmé(s)")
+    def mark_confirmed(self, request, queryset):
+        updated = queryset.update(status="confirmed")
+        self.message_user(request, f"{updated} don(s) marqué(s) comme confirmé(s).")
+
+    @admin.action(description="❌ Marquer comme rejeté(s)")
+    def mark_rejected(self, request, queryset):
+        updated = queryset.update(status="rejected")
+        self.message_user(request, f"{updated} don(s) marqué(s) comme rejeté(s).")

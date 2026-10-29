@@ -74,4 +74,7 @@ urlpatterns = [
 
     # Contact
     path("contact/", views.ContactCreateView.as_view(), name="contact-create"),
+
+    # Dons (Mobile Money)
+    path("donations/", views.DonationCreateView.as_view(), name="donation-create"),
 ]

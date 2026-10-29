@@ -282,3 +282,71 @@ def send_newsletter_custom(subject, body, recipient_emails=None):
         Nombre d'emails envoyés.
     """
     return _send_to_subscribers(subject=subject, body=body, recipient_emails=recipient_emails)
+
+
+# === Dons (Mobile Money) ===
+
+
+def send_donation_emails(donation):
+    """
+    Envoie deux emails après une déclaration de don :
+      1. Une notification au bureau (adresse de l'association).
+      2. Un reçu/accusé de réception au donateur.
+
+    Protégé pour ne jamais faire échouer l'enregistrement du don.
+    """
+    from .models import AssociationInfo
+
+    try:
+        info = AssociationInfo.load()
+        bureau_email = info.email
+        method_label = donation.get_method_display()
+        ref = donation.transaction_reference or "non renseignée"
+
+        # 1. Notification au bureau
+        if bureau_email:
+            send_mail(
+                subject=email_subject(f"Nouveau don déclaré — {donation.amount} FCFA"),
+                message=(
+                    f"Un nouveau don vient d'être déclaré sur le site :\n\n"
+                    f"  • Donateur : {donation.full_name}\n"
+                    f"  • Email : {donation.email}\n"
+                    f"  • Téléphone : {donation.phone or 'non renseigné'}\n"
+                    f"  • Moyen : {method_label}\n"
+                    f"  • Montant : {donation.amount} FCFA\n"
+                    f"  • Référence : {ref}\n"
+                    f"  • Message : {donation.message or '—'}\n\n"
+                    f"Merci de vérifier la transaction puis de confirmer le don "
+                    f"dans l'administration."
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[bureau_email],
+                fail_silently=True,
+            )
+
+        # 2. Reçu au donateur
+        if donation.email:
+            send_mail(
+                subject=email_subject("Merci pour votre don !"),
+                message=(
+                    f"Bonjour {donation.full_name},\n\n"
+                    f"Nous avons bien reçu votre déclaration de don et vous remercions "
+                    f"chaleureusement pour votre générosité envers la 2ALHB.\n\n"
+                    f"Récapitulatif de votre don :\n"
+                    f"  • Moyen : {method_label}\n"
+                    f"  • Montant : {donation.amount} FCFA\n"
+                    f"  • Référence : {ref}\n\n"
+                    f"Votre don sera vérifié par le bureau. Un reçu officiel pourra "
+                    f"vous être adressé après confirmation.\n\n"
+                    f"Votre soutien contribue directement aux actions de solidarité, "
+                    f"aux bourses d'excellence et au rayonnement de notre amicale."
+                    f"{SIGNATURE}"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[donation.email],
+                fail_silently=True,
+            )
+
+        logger.info("Emails de don envoyés pour %s (%d FCFA).", donation.full_name, donation.amount)
+    except Exception as e:
+        logger.error(f"Erreur lors de l'envoi des emails de don : {e}")

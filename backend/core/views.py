@@ -11,7 +11,7 @@ from .models import (
     Partner, GalleryImage, GalleryAlbum, SiteStats, ContactMessage,
     BureauMember, JobOffer, FAQ, Activity, AssociationInfo,
     NewsletterSubscriber, MemberDocument, Notification, CotisationPayment,
-    OfficialDocument,
+    OfficialDocument, Donation,
 )
 from .serializers import (
     PromotionSerializer, PromotionListSerializer,
@@ -27,6 +27,7 @@ from .serializers import (
     MemberDocumentSerializer, NotificationSerializer, CotisationPaymentSerializer,
     TestimonialCreateSerializer,
     OfficialDocumentSerializer,
+    DonationCreateSerializer,
 )
 
 
@@ -199,6 +200,24 @@ class ContactCreateView(generics.CreateAPIView):
     serializer_class = ContactMessageSerializer
     permission_classes = [permissions.AllowAny]
     throttle_classes = [ContactThrottle]
+
+
+# --- Dons (Mobile Money) ---
+
+class DonationThrottle(AnonRateThrottle):
+    """Limite le nombre de déclarations de don pour éviter les abus."""
+    rate = "10/hour"
+
+
+class DonationCreateView(generics.CreateAPIView):
+    serializer_class = DonationCreateSerializer
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [DonationThrottle]
+
+    def perform_create(self, serializer):
+        donation = serializer.save()
+        from .emails import send_donation_emails
+        send_donation_emails(donation)
 
 
 # --- Bureau ---
