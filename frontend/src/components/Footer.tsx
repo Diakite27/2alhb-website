@@ -219,9 +219,13 @@ export default function Footer() {
           <p className="text-white/40 text-xs">
             © {new Date().getFullYear()} 2ALHB. Tous droits réservés.
           </p>
-          <p className="text-white/25 text-xs">
-            Association apolitique, laïque et non confessionnelle
-          </p>
+          <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-white/40 text-xs">
+            <Link href="/mentions-legales" className="hover:text-orange transition-colors">Mentions légales</Link>
+            <span className="text-white/15">•</span>
+            <Link href="/confidentialite" className="hover:text-orange transition-colors">Confidentialité</Link>
+            <span className="text-white/15">•</span>
+            <Link href="/conditions" className="hover:text-orange transition-colors">Conditions d&apos;utilisation</Link>
+          </nav>
         </div>
       </div>
     </footer>
